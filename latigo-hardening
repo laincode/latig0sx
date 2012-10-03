@@ -1,0 +1,114 @@
+#!/bin/sh
+
+# Copyright (c) 2012 - lain <laina@riseup.net>
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     1) Redistributions of source code must retain the above copyright
+#        notice, this list of conditions and the following disclaimer.
+#     2) Redistributions in binary form must reproduce the above copyright
+#        notice, this list of conditions and the following disclaimer in the
+#        documentation and/or other materials provided with the distribution.
+#     3) Neither the name of the <organization> nor the
+#        names of its contributors may be used to endorse or promote products
+#        derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+echo -------------------------------------------
+echo " Latigo - OS X Hardening                 "
+echo "     by lain                             "
+echo -------------------------------------------
+
+echo "\n[Secure User's Home Folder Permissions...]"
+chmod go-rx /Users/$(whoami)/
+
+echo "\n[Disable Unnecessary Services...]"
+srvDaemons=(
+com.apple.blued
+com.apple.IIDCAssistant
+com.apple.nis.ypbind
+com.apple.racoon 
+com.apple.RemoteDesktop.PrivilegeProxy 
+com.apple.RFBEventHelper 
+com.apple.UserNotificationCenter
+com.apple.webdavfs_load_kext
+org.postfix.master
+com.apple.efax
+ssh)
+for s in ${srvDaemons[@]}
+do
+	launchctl unload -w /System/Library/LaunchDaemons/$s.plist	1>&2 2>/dev/null
+done
+
+srvAgents=(
+com.apple.RemoteDesktop 
+com.apple.RemoteUI
+)
+for a in ${srvAgents[@]}
+do
+	launchctl unload -w /System/Library/LaunchAgents/$a.plist 1>&2 2>/dev/null
+done
+
+defaults write /Library/Preferences/com.apple.Bluetooth/ControllerPowerState -int 0 2>/dev/null
+
+echo "\n[Disable Setuid and Setgid...]"
+bins=(
+/System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/MacOS/ARDAgent 
+/System/Library/Printers/IOMs/LPRIOM.plugin/Contents/MacOS/LPRIOMHelper
+/sbin/mount_nfs
+/usr/bin/at
+/usr/bin/atq
+/usr/bin/atrm
+/usr/bin/chpass
+/usr/bin/crontab
+/usr/bin/ipcs
+/usr/bin/newgrp 
+/usr/bin/postdrop
+/usr/bin/wall 
+/usr/bin/write 
+/usr/bin/rcp
+/bin/rcp
+/usr/bin/rlogin 
+/usr/bin/rsh
+/usr/lib/sa/sadc 
+/usr/sbin/scselect
+/usr/sbin/traceroute
+/usr/sbin/traceroute6)
+for u in 
+do
+	chmod ug-s $u 2>/dev/null
+done
+
+echo "\n[Updating Software...]"
+softwareupdate --schedule
+
+echo "\n[Setting NVRAM Security Mode to Full...]"
+#full -> All commands except go require the security-password
+nvram security-mode="full"
+
+echo "\n[Disable IPv6...]"
+networksetup -setv6off "Wi-Fi"
+networksetup -setv6off "USB Ethernet"
+networksetup -setv6off "Bluetooth PAN"
+
+echo "\n[Disable root account...]" 
+dsenableroot -d
+
+echo "\n[Disabling Remote Desktop...]"
+/System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -stop 2>/dev/null
+
+echo "\n[Setting Kern Secure Level to 1...]"  
+sysctl -w kern.securelevel=1
+
+exit 0

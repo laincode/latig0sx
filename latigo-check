@@ -1,0 +1,936 @@
+#!/bin/sh
+
+# Copyright (c) 2012 - lain <laina@riseup.net>
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     1) Redistributions of source code must retain the above copyright
+#        notice, this list of conditions and the following disclaimer.
+#     2) Redistributions in binary form must reproduce the above copyright
+#        notice, this list of conditions and the following disclaimer in the
+#        documentation and/or other materials provided with the distribution.
+#     3) Neither the name of the <organization> nor the
+#        names of its contributors may be used to endorse or promote products
+#        derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+echo -------------------------------------------
+echo " Latigo - OS X Audit Tool                "
+echo "     by lain                             "
+echo -------------------------------------------
+
+## Configuration Overview ##
+echo "\n[[Configuration Overview]]"
+
+# Kernel Configuration
+echo "\t [Kernel Configuration Information]"
+echo "\t \t OStype: $(uname -a | awk '{ print $1}')"
+echo "\t \t OSrelease: $(uname -a | awk '{ print $3}')"
+
+# Kernel Secure Level
+echo "\t \t Secure Level: $(sysctl -a | grep kern.secure_kernel | awk '{ print $2}')"
+
+# Checking Software Updates
+echo "\t [Checking Software Updates]"
+softwareUpdate=$(softwareupdate -l 2>&1) 
+if [ "$(echo $softwareUpdate | awk '/available./')" ] 
+then
+	echo "\t \t Up to date"
+else
+	echo "\t \t Software Available: $softwareUpdate"
+fi
+
+# Checking Download Important Updates Automatically Disabled
+echo "\t [Checking Download Updates Automatically Disabled]"
+if [ "$(softwareupdate --schedule | grep "Automatic check is off")" ]
+then
+	echo "\t \t Automatic check is OFF"
+else
+	echo "\t \t Automatic check is ON"
+fi
+
+## Checking System Hardware ##
+echo "\n[[Checking System Hardware]]"
+
+# Checking Apple AirPort kernel extensions
+echo "\t [Checking Apple AirPort kernel extensions]"
+if [ -d /System/Library/Extensions/IO80211Family.kext ]
+then
+	echo "\t \t Apple AirPort kernel extensions installed"
+else 
+	echo "\t \t Apple AirPort kernel extensions not installed"
+fi
+
+# Checking Bluetooth kernel extensions
+echo "\t [Checking Bluetooth kernel extensions]"
+if [ -d /System/Library/Extensions/IOBluetoothFamily.kext ] || [ -d /System/Library/Extensions/IOBluetoothHIDDriver.kext ] 
+then
+	echo "\t \t Bluetooth kernel extensions installed"
+else
+	echo "\t \t Bluetooth kernel extensions not installed"
+fi
+
+# Checking IR kernel extensions
+echo "\t [Checking IR kernel extensions]"
+if [ -d  /System/Library/Extensions/AppleIRController.kext ]
+then
+	echo "\t \t IR kernel extensions installed"
+else
+	echo "\t \t IR kernel extensions not installed"
+fi
+
+# Checking Audio Recording kernel extensions
+echo "\t [Checking Audio Recording kernel extensions]"
+if [ -d /System/Library/Extensions/AppleUSBAudio.kext ] 
+then
+	echo "\t \t Audio Recording kernel extensions installed"
+else
+	echo "\t \t Audio Recording kernel extensions not installed"
+fi
+
+# Checking External iSight camera
+echo "\t [Checking External iSight camera]"
+if [ -d /System/Library/Extensions/Apple_iSight.kext ]
+then
+	echo "\t \t External iSight camera installed"
+else
+	echo "\t \t External iSight camera not installed"
+fi
+
+# Checking Internal iSight camera
+echo "\t [Checking Internal iSight camera]"
+if [ -d /System/Library/Extensions/IOUSBFamily.kext/Contents/PlugIns/AppleUSBVideoSupport.kext ]
+then
+	echo "\t \t Internal iSight camera installed"
+else
+	echo "\t \t Internal iSight camera not installed"
+fi
+
+# Checking USB kernel extensions
+echo "\t [Checking USB kernel extensions]"
+if [ -d /System/Library/Extensions/IOUSBMassStorageClass.kext ]
+then
+	echo "\t \t USB kernel extensions installed"
+else
+	echo "\t \t USB kernel extensions not installed"
+fi
+
+# Checking FireWire kernel extensions
+echo "\t [Checking FireWire kernel extensions]"
+if [ -d /System/Library/Extensions/IOFireWireSerialBusProtocolTransport.kext ]
+then
+	echo "\t \t FireWire kernel extensions installed"
+else
+	echo "\t \t FireWire kernel extensions not installed"
+fi
+
+## Checking Global System Settings ##
+echo "\n[[Checking Global System Settings]]"
+
+# Checking EFI Settings
+# Verify security-mode setting
+echo "\t [Checking EFI Settings]"
+secureMode=$(nvram -x -p)
+if [ "$(echo $secureMode | awk '/security-mode/')" ] 
+then
+	echo "\t \t Secure Mode: $(nvram -x security-mode | awk '{ print $2}')"
+else
+	echo "\t \t No Secure Mode setting"
+fi
+
+# Checking if there is a login window access warning
+echo "\t [Checking if there is a login window access warning]"
+if [ -a /Library/Preferences/com.apple.loginwindow.plist ]
+then
+	if [ "$(grep LoginWindowText /Library/Preferences/com.apple.loginwindow.plist)" ]  
+	then
+		echo "\t \t Login Window access warning defined"
+	else 
+		echo "\t \t No Login Window access warning defined"
+	fi
+else
+	if [ -f /etc/motd ] 
+	then
+		echo "\t \t Login Window access warning defined: $(cat /etc/motd)" 
+	else
+		echo "\t \t No Login Window access warning defined"
+	fi
+fi
+
+# Checking 644 /etc/motd
+if [ -f /etc/motd ] 
+then
+	owner=$(stat -f %SHp /etc/motd)
+	group=$(stat -f %SMp /etc/motd)
+	other=$(stat -f %SLp /etc/motd)
+	if [ "$owner" == "rw-" ] && [ "$group" == "r--" ] && [ "$other" == "r--" ]  
+	then
+		echo "\t \t /etc/motd has correct permissions"
+	else
+		echo "\t \t /etc/motd doesnt have correct permissions"
+	fi
+#else
+#	echo "/etc/motd doesnt exist"
+fi
+
+## Checking System Preferences ##
+echo "\n[[Checking System Preferences]]"
+	
+# Checking MobileMe Preferences
+echo "\t [Checking MobileMe Preferences]"
+# Checking Disable Sync options
+syncopts=$(defaults read /Library/Preferences/com.apple.DotMacSync ShouldSyncWithServer 2>&1)
+if [ "$(echo $syncopts | awk '/does not exist/')" ]
+then
+        echo "\t \t Sync options not installed"
+else
+	if [ $syncopts eq -1 ]
+        then
+		echo "\t \t Sync options disabled"
+	else
+		echo "\t \t Sync options enabled"
+		#Checking Disable iDisk Syncing
+                echo "\t \t [Checking Disable iDisk Syncing]"
+                echo "\t \t Enter your MobileMe user name:"
+                read mirroruser
+                idisksync=$(defaults -currentHost read com.apple.idisk $mirroruser 2>&1)
+		if [ "$(echo $idisksync | awk '/does not exist/')" ]
+		then
+			echo "\t \t iDisk Syncing not installed"
+		else
+			if [ $syncopts == "YES" ]
+			then 
+				echo "\t \t iDisk Syncing enabled"
+			else
+				echo "\t \t iDisk Syncing disabled"
+			fi
+		fi
+        fi
+fi
+
+# Checking Accounts Preferences
+echo "\t [Checking Accounts Preferences]"
+
+# Make sure there is no password hint set
+passhint=$(defaults read /Library/Preferences/com.apple.loginwindow RetriesUntilHint 2>&1) 
+if [ "$(echo $passhint | awk '/does not exist/')" ]
+then
+	echo "\t \t Password hint option not installed"
+else
+	if [ $passhint -eq 0 ]
+	then
+		echo "\t \t No password hint set"
+	else
+		echo "\t \t Password hint set"
+	fi
+fi
+ 
+# Set the login options to display name and password in the login window 
+showfname=$(defaults read /Library/Preferences/com.apple.loginwindow SHOWFULLNAME 2>&1)
+if [ "$(echo $showfname | awk '/does not exist/')" ]
+then
+	echo "\t \t Show full name option not installed"
+else
+	if [ $showfname -eq 1 ]
+	then
+		echo "\t \t Login options display name and password in the login window"
+	else
+		echo "\t \t Login options dont display name and password in the login window"
+	fi
+fi
+
+# Disable Show the Restart, Sleep, and ShutDown Buttons 
+buttons=$(defaults read /Library/Preferences/com.apple.loginwindow PowerOffDisabled 2>&1)
+if [ "$(echo $buttons | awk '/does not exist/')" ]
+then
+	echo "\t \t PowerOff option not installed"	
+else
+	if [ $buttons -eq 1 ]
+	then
+		echo "\t \t Show Restart, Sleep and ShutDown Buttons disabled" 
+	else
+		echo "\t \t Show Restart, Sleep and ShutDown Buttons not disabled"
+	fi
+fi
+ 
+# Checking fast user switching disabled
+fastUserSwitching=$(defaults read /Library/Preferences/.GlobalPreferences MultipleSessionEnabled 2>&1)
+if [ "$(echo $fastUserSwitching | awk '/does not exist/')" ]
+then
+	echo "\t \t Fast User Switching not installed"
+else
+	if [ $fastUserSwitching -eq 0 ]
+	then
+		echo "\t \t Fast User Switching disabled"
+	else
+		echo "\t \t Fast User Switching enabled"
+	fi
+fi
+# -bool NO
+
+# Checking display of recent applications disabled
+appDisabled=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.recentitems Applications 2>&1)
+if [ "$(echo $appDisabled | awk '/does not exist/')" ]
+then
+	echo "\t \t No recent applications displayed"
+else
+	if [ $appDisabled -ne 0]
+	then
+		echo "\t \t MaxAmount applications is OK "
+	else
+		echo "\t \t MaxAmount applications must be distinct 0"
+	fi
+fi
+# MaxAmount 0,5,10,15,20,30,50
+
+# Checking Bluetooth status
+bluetooth=$(defaults read /Library/Preferences/com.apple.Bluetooth ControllerPowerState 2>&1)
+if [ "$(echo $bluetooth | awk '/does not exist/')" ]
+then
+	echo "\t \t Bluetooth Controller not installed" 
+else
+	if [ $bluetooth -eq 0 ]
+	then
+		echo "\t \t Bluetooth is disabled"
+	else
+		echo "\t \t Bluetooth is enabled"
+	fi
+fi
+
+# Checking CDs & DVDs Preferences 
+echo "\t [Checking CDs & DVDs Preferences]"
+
+# Disable blank CD automatic action 
+cdPrefBlank=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.digihub com.apple.digihub.blank.cd.appeared 2>&1)
+if [ "$(echo $cdPrefBlank | awk '/does not exist/')" ]
+then
+	echo "\t \t Blank CD automatic action not defined"
+else
+	if [ "$(echo $cdPrefBlank | grep "action = 1")" ]
+	then
+		echo "\t \t Blank CD automatic action disabled"
+	else
+		echo "\t \t Blank CD automatic action enabled" 
+	fi
+fi	
+
+# Disable music CD automatic action 
+cdPrefMusic=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.digihub com.apple.digihub.cd.music.appeared action 2>1&)
+if [ "$(echo $cdPrefMusic | awk '/does not exist/')" ]
+then
+	echo "\t \t Music CD automatic action not defined"
+else
+	if [ "$(echo $cdPrefMusic | grep "action = 1")" ]
+	then
+		echo "\t \t Music CD automatic action disabled"
+	else
+		echo "\t \t Music CD automatic action enabled"
+	fi
+fi	
+
+# Disable picture CD automatic action
+cdPrefPicure=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.digihub com.apple.digihub.cd.picture.appeared action 2>1&)
+if [ "$(echo $cdPrefPicture | awk '/does not exist/')" ]
+then
+	echo "\t \t Picture CD automatic action not defined"
+else
+	if [ "$(echo $cdPrefPicture | grep "action = 1")" ]
+	then
+        	echo "\t \t Picture CD automatic action disabled"
+	else
+        	echo "\t \t Picture CD automatic action enabled"
+	fi
+fi
+
+# Disable blank DVD automatic action
+dvdPrefBlank=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.digihub com.apple.digihub.blank.dvd.appeared action 2>&1)
+if [ "$(echo $dvdPrefBlank | awk '/does not exist/')" ]
+then
+        echo "\t \t Blank CD automatic action not defined"
+	if [ "$(echo $dvdPrefBlank | grep "action = 1")" ]
+	then
+        	echo "\t \t Blank DVD automatic action disabled"
+	else
+        	echo "\t \t Blank DVD automatic action enabled"
+	fi
+fi
+
+# Disable video DVD automatic action 
+dvdPrefVideo=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.digihub com.apple.digihub.dvd.video.appeared action 2>&1)
+if [ "$(echo $cdPrefVideo | awk '/does not exist/')" ]
+then
+        echo "\t \t Video CD automatic action not defined"
+	if [ "$(echo $dvdPrefVideo | grep "action = 1")" ]
+	then 
+        	echo "\t \t Video DVD automatic action disabled"
+	else
+        	echo "\t \t Video DVD automatic action enabled"
+	fi
+fi
+
+# Available Settings: 
+# action 1 = "Ignore" 
+# action 2 = "Ask what to do" 
+# action 5 = "Open other application" 
+# action 6 = "Run script" 
+# action 100 = "Open Finder" 
+# action 101 = "Open itunes" 
+# action 102 = "Open Disk Utility" 
+# action 105 = "Open DVD Player" 
+# action 106 = "Open iDVD" 
+# action 107 = "Open iPhoto" 
+# action 109 = "Open Front Row"
+
+# Checking Date & Time Preferences 
+echo "\t [Checking Date & Time Preferences]"
+
+# Checking the NTP server
+if [ -f /etc/ntp.conf ]
+then
+	if [ "$(cat /etc/ntp.conf | awk '/time.*.apple/')" ]
+	then
+		echo "\t \t Date & Time Preferences defined correctly: $(cat /etc/ntp.conf)"
+	else
+		echo "\t \t Date & Time Preferences wrong defined"
+	fi
+else
+	echo "\t \t No Date & Time Preferences defined"
+fi 
+
+# Checking the date and time zone
+echo "\t \t $(systemsetup -gettimezone)"
+
+# Checking Desktop & Screen Saver Preferences 
+echo "\t [Checking Desktop & Screen Saver Preferences]"
+
+# Set idle time for screen saver. Replace XX with the idle time in seconds 
+idleTimeScreenSaver=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.screensaver idleTime 2>&1)
+if [ "$(echo $idleTimeScreenSaver | awk '/does not exist/')" ]
+then
+	echo "\t \t Idle time for screen saver not setting"
+else
+	echo "\t \t Idle time for screen saver setting"
+fi
+
+# Set host corner to activate screen saver
+hostcornerScreenSaver=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.dock wvous-corner_code-corner 2>&1)
+if [ "$(echo $hostcornerScreenSaver | awk '/does not exist/')" ]
+then
+	echo "\t \t Host corner to activate screen saver not setting"
+else    
+	if [ $hostcornerScreenSave -eq 5 ]
+    	then
+        	echo "\t \t Host corner to activate screen saver setting and value 5"
+    	else
+        	echo "\t \t Host corner to activate screen saver setting but not value 5"
+    	fi
+fi
+
+# Set modifier key to 0 wvous-corner_code-modifier 
+modifierKey=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.dock wvous-corner_code-corner 2>&1)
+if [ "$(echo $modifierKey | awk '/does not exist/')" ]
+then 
+	echo "\t \t Modifier key to 0 wvous-corner_code-modifier not setting"
+else
+    	if [ $modifierKey -eq 0 ]
+    	then
+        	echo "\t \t Modifier key to 0 wvous-corner_code-modifier setting"
+    	else
+        	echo "\t \t Modifier key wvous-corner_code-modifier must be setting 0"
+    	fi
+fi
+
+# Automatically hide and show Dock
+autoDock=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.dock autohide 2>&1)
+if [ "$(echo $autoDock | awk '/does not exist/')" ]
+then 
+	echo "\t \t Automatically hide and show Dock not setting"
+else 
+    	if [ "$autoDock" == "YES" ]
+    	then
+        	echo "\t \t Automatically hide and show Dock setting"
+    	else
+        	echo "\t \t Automatically hide and show Dock not setting"
+    	fi
+fi
+
+# Checking Computer Sleep disabled
+compuSleep=$(pmset -g | awk '$1 == "sleep" { print $2 }')
+if [ "$(echo $compuSleep)" ]
+then
+	if [ $compuSleep -eq 0 ]
+	then
+		echo "\t \t Computer sleep disabled"
+	else
+		echo "\t \t Computer sleep enabled"
+	fi 
+else
+	echo "\t \t Computer sleep is not setting"
+fi	
+
+# Checking Hard disk sleep enabled 
+hardDiskSleep=$(pmset -g | awk '$1 == "disksleep" { print $2 }')
+if [ "$(echo $hardDiskSleep)" ]
+then
+	if [ $hardDiskSleep -eq 1 ]
+	then
+		echo "\t \t Hard disk sleep enabled"
+	else
+		echo "\t \t Hard disk sleep disabled"
+	fi
+else
+	echo "\t \t Hard disk sleep is not setting"
+fi
+
+# Checking Wake for Ethernet network administrator access disabled 
+ethNetworkAdmin=$(pmset -g | awk '$1 == "womp" { print $2 }')
+if [ "$(echo $ethNetworkAdmin)" ]
+then
+	if [ $ethNetworkAdmin -eq 0 ]
+	then
+		echo "\t \t Wake for Ethernet network administrator access disabled"
+	else
+		echo "\t \t Wake for Ethernet network administrator access enabled"
+	fi
+else
+	echo "\t \t Wake for Ethernet network administrator access not setting"
+fi
+	
+# Disable Restart automatically after power failure 
+restartAuto=$(pmset -g | awk '$1 == "autorestart" { print $2 }')
+if [ "$(echo $restartAuto)" ] 
+then
+	if [ $restartAuto -eq 0 ]
+	then
+        	echo "\t \t Restart automatically after power failure disabled"
+	else
+        	echo "\t \t Restart automatically after power failure enabled"
+	fi
+else
+	echo "\t \t Restart automatically after power failure not setting"
+fi
+
+# Checking Dashboard Disabled
+if [ -a /System/Library/LaunchDaemons/com.apple.dashboard.advisory.fetch.plist ]
+then
+	echo "\t \t Dashboard Enabled"
+else
+	echo "\t \t Dashboard Disabled"
+fi 
+
+# Checking IPv6 Disabled 
+networksetup -listnetworkserviceorder | grep "Hardware Port" | sed 's/(Hardware Port: //' | sed 's/,.*//' | \
+while read i
+do
+    ns=$(echo $i)
+    if [ "$(echo $(networksetup -getinfo $ns) | grep "IPv6: Off")" ]
+    then
+        echo "\t \t NetworkService $ns : IPv6 Off"
+    else
+        echo "\t \t NetworkService $ns : IPv6 On"
+    fi
+done
+
+# Checking the receiving of faxes is disabled
+if [ "$(launchctl list | grep com.apple.efax)" ]
+then
+	echo "\t \t Receiving faxes enabled"
+else
+	echo "\t \t Receiving faxes disabled"
+fi
+
+# Checking printer sharing disabled  
+if grep "Port 631" /etc/cups/cupsd.conf
+then
+	echo "\t \t Printer Sharing on"
+else 
+	echo "\t \t Printer Sharing not on" 
+fi
+
+# Enable Require password to wake this computer from sleep or screen saver 
+askForPassword=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.screensaver askForPassword 2>&1)
+if [ -z "$(echo $askForPassword | awk '/does not exist/')" ]
+then
+	if [ $askForPassword -eq 1 ]
+    	then 
+        	echo "\t \t Require password to wake this computer from sleep or screen saver enabled"
+    	else
+        	echo "\t \t Require password to wake this computer from sleep or screen saver disabled"
+    	fi
+else
+	echo "\t \t Require password to wake this computer from sleep or screen saver not setting"
+fi
+
+# Disable Automatic login 
+disableAutoLogin=$(defaults read /Library/Preferences/.GlobalPreferences/com.apple.userspref DisableAutoLogin 2>&1)
+if [ "$(echo $disableAutoLogin | awk '/does not exist/')" ]
+then
+    echo "\t \t Automatic login not setting"
+else
+    if [ "$disableAutoLogin" == "yes" ]
+    then
+        echo "\t \t Automatic login disabled"
+    else
+        echo "\t \t Automatic login enabled"
+    fi
+fi
+
+# Disable automatic logout delay
+disableAutoLogout=$(defaults read /Library/Preferences/.GlobalPreferences/com.apple.autologout AutoLogOutDelay 2>&1)
+if [ "$(echo $disableAutoLogout | awk '/does not exist/')" ]
+then 
+    echo "\t \t Automatic logout delay not setting"
+else
+    if [ $disableAutoLogin -eq 0 ]
+    then
+        echo "\t \t Automatic logout delay disbled"
+    else
+        echo "\t \t Automatic logout delay enabled"
+    fi
+fi
+
+# Enable secure virtual memory 
+enableVirtualMem=$(defaults read /Library/Preferences/com.apple.virtualMemory UseEncryptedSwap 2>&1)
+if [ "$(echo $enableVirtualMem | awk '/does not exist/')" ]
+then
+    echo "\t \t Secure virtual memory not setting"
+else
+    if [ "$enableVirtualMem" == "yes" ]
+    then
+        echo "\t \t Secure virtual memory enabled"
+    else
+        echo "\t \t Secure virtual memory disabled"
+    fi
+fi
+
+# Disable IR remote control 
+disableIR=$(defaults read /Library/Preferences/com.apple.driver.AppleIRController DeviceEnabled 2>&1)
+if [ "$(echo $disableIR | awk '/does not exist/')" ]
+then
+    echo "\t \t IR remote control not setting"
+else
+    if [ "$disableIR" == "no" ]
+    then
+        echo "\t \t IR remote control disabled"
+    else
+        echo "\t \t IR remote control enabled"
+    fi
+fi
+
+# Enable FileVault
+if [ "$(diskutil cs list | grep "Has Encrypted Extents:  Yes")" ]
+then
+	echo "\t \t FileVault enabled"
+else
+	echo "\t \t FileVault disabled"
+fi
+
+# Enable secure virtual memory 
+secureVirtualMemory=$(defaults read /Library/Preferences/com.apple.virtualMemory UseEncryptedSwap 2>&1)
+if [ "$(echo $secureVirtualMemory | awk '/does not exist/')" ]
+then
+	echo "\t \t Secure virtual memory not setting"
+else
+	if [ $secureVirtualMemory == "YES" ]
+    	then
+		echo "\t \t Secure virtual memory enabled"
+    	else
+		echo "\t \t Secure virtual memory disabled"
+	fi
+fi
+
+# You can also turn hibernate off by using the following command: 
+if [ $(pmset -g | awk '$1 == "hibernatemode" { print $2 }') -eq 0 ]
+then
+	echo "\t \t Hibernate mode disabled"
+else
+	echo "\t \t Hibernate mode enabled"
+fi
+
+# Disable internal microphone or line-in 
+if [ "$(osascript -e "get volume settings" | grep volume:0)" ]
+then
+	echo "\t \t Internal microphone or line-in disabled" 
+else
+	echo "\t \t Internal microphone or line-in enabled"
+fi
+
+# Disable Speech Recognition 
+speedRecognition=$(defaults read /Library/Preferences/com.apple.speech.recognition.AppleSpeechRecognition.prefs StartSpeakableItems 2>&1)
+if [ "$(echo $speedRecognition | awk '/does not exist/')" ]
+then
+	echo "\t \t Speed Recognition not setting"
+else
+	if [ $speedRecognition == "false" ]
+    	then
+        	echo "\t \t Speed Recognition disabled"
+    	else
+        	echo "\t \t Speed Recognition enabled"
+   	fi
+fi
+
+# Disable Text to Speech settings
+talkingAlertsSpeak=$(defaults read /Library/Preferences/com.apple.speech.synthesis.general.prefs TalkingAlertsSpeakTextFlag 2>&1)
+if [ "$(echo $talkingAlertsSpeak | awk '/does not exist/')" ]
+then
+	echo "\t \t Text to Speech settings not setting"
+else 
+    	if [ $talkingAlertsSpeak == "false" ]
+	then
+		echo "\t \t Text to Speech settings disabled"
+	else
+		echo "\t \t Text to Speech settings enabled"
+	fi
+fi
+
+spokenNotification=$(defaults read /Library/Preferences/com.apple.speech.synthesis.general.prefs SpokenNotificationAppActivationFlag 2>&1)
+if [ "$(echo $spokenNotification | awk '/does not exist/')" ]
+then
+	echo "\t \t Spoken Notification App Activation Flag not setting"
+else
+	if [ $spokenNotification == "false" ]
+	then
+		echo "\t \t Spoken Notification App Activation Flag disabled"
+	else
+		echo "\t \t Spoken Notification App Activation Flag enabled"
+	fi
+fi
+
+spokenUI=$(defaults read /Library/Preferences/com.apple.speech.synthesis.general.prefs SpokenUIUseSpeakingHotKeyFlag 2>&1)
+if [ "$(echo $spokenUI | awk '/does not exist/')" ]
+then
+	echo "\t \t Spoken UI Use Speaking HotKey Flag not setting"
+else 
+	if [ $spokenUI == "false" ]
+	then
+		echo "\t \t Spoken UI Use Speaking HotKey Flag disabled"
+	else
+		echo "\t \t Spoken UI Use Speaking HotKey Flag enabled"
+	fi
+fi
+
+timeAnnouncement=$(defaults read /Library/Preferences/com.apple.speech.synthesis.general.prefs TimeAnnouncementPrefs 2>&1)
+if [ "$(echo $timeAnnouncement | awk '/does not exist/')" ]
+then
+	echo "\t \t Time Announcement Prefs not setting"
+else
+	if [ $timeAnnouncement == "false" ]
+	then
+		echo "\t \t Time Announcement Prefs disabled"
+	else
+		echo "\t \t Time Announcement Prefs enabled"
+	fi
+fi
+
+# Checking Time Machine enabled
+timemach=$(defaults read /Library/Preferences/com.apple.TimeMachine AutoBackup 2>&1)
+if [ "$(echo $timemach | awk '/does not exist/')" ]
+then
+	echo "\t \t Time Machine Prefs not setting"
+else
+	if [ $timemach -eq 1 ]
+	then
+		echo "\t \t Time Machine enabled"
+	else
+		echo "\t \t Time Machine disabled"
+	fi
+fi
+
+# Disable VoiceOver service
+echo "\t[Checking VoiceOver service disabled]"
+
+if [ "$(launchctl list | grep com.apple.VoiceOver)" ]
+then
+	echo "\t \t Service VoiceOver must be unloaded"
+else
+	echo "\t \t Service VoiceOver is unloaded"
+fi
+
+if [ "$(launchctl list | grep com.apple.ScreenReaderUIServer)" ]
+then
+	echo "\t \t Service ScreenReaderUIServer must be unloaded"
+else
+	echo "\t \t Service ScreenReaderUIServer is unloaded"
+fi
+
+if [ "$(launchctl list | grep com.apple.scrod)" ]
+then
+	echo "\t \t Service scrod must be unloaded"
+else
+	echo "\t \t Service scrod is unloaded"
+fi
+
+## Checking Accounts ##
+echo "\n[[Checking Accounts]]"
+
+# Checking root account Disabled
+echo "\t[Checking root account disabled]"
+if [ "$(dscl localhost -read /Search/Users/root Password)" == "Password: *" ]
+then
+	echo "\t \t Root account disabled"
+else
+	echo "\t \t Root account enabled"
+fi
+
+# Checking Setuid and Setgid flags
+echo "\t[Checking Setuid flags]"
+find / -perm -04000 -ls 2>/dev/null | awk '{ print "\t \t " $11 }'
+echo "\t[Checking Setgid flags]"
+find / -perm -02000 -ls 2>/dev/null | awk '{ print "\t \t " $11 }'
+
+# Checking Disk Permissions
+echo "\t[Checking Disk Permissions]" 
+targetBootDrive=$(uname -a | awk '{ print $2}' | cut -d'.' -f1)
+diskUtil=$(diskutil verifyPermissions /Volumes/$targetBootDrive 2>/dev/null)
+if [ "$(echo $diskUtil | awk '/differ/')" ]
+then
+	echo "\t \t Must repair disk permissions"
+else
+	echo "\t \t OK Disk Permisssions"
+fi
+
+# Secure User's Home Folder Permissions
+echo "\t[Checking User's Home Folder Permissions]"
+users=$(ls /Users/)
+for us in $users
+do
+    group=$(stat -f %SMp /Users/$us)
+    other=$(stat -f %SLp /Users/$us)
+    if [ "$group" == "---" ] && [ "$other" == "---" ]
+    then
+        echo "\t \t /Users/$us has correct permissions"
+    else
+        echo "\t \t /Users/$us doesnt have correct permissions"
+    fi
+done
+
+## Checking Applications ##
+echo "\n[[Checking Applications]]"
+# Disabling iSync
+if [ "$(launchctl list | grep com.apple.syncservices.SyncServer)" ]
+then
+	echo "\t \t Service SyncServer must be unloaded"
+else
+	echo "\t \t Service SyncServer is unloaded"
+fi
+
+if [ "$(launchctl list | grep com.apple.syncservices.uihandler)" ]
+then
+	echo "\t \t Service uihandler must be unloaded"
+else
+	echo "\t \t Service uihandler is unloaded"
+fi
+
+## Checking Network Services
+echo "\n[[Checking Network Services]]"
+
+# Checking Application Firewall enabled
+echo "\t[Checking application firewall enabled]"
+# 0 = off 
+# 1 = on for specific services 
+# 2 = on for essential services
+# defaults read /Library/Preferences/com.apple.alf globalstate 
+appFirewallState=$(/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate)
+if [ "$(echo $appFirewallState | awk '/enabled/')" ]
+then
+	if [ "$(echo $appFirewallState | awk '/State = 2/')" ]
+	then
+		echo "\t \t Application Firewall enabled - Block all incoming connections and Silent Mode"
+	else
+		echo "\t \t Application Firewall enabled - Not blocking all incoming connections"
+	fi
+else
+	echo "\t \t Application Firewall disabled"
+fi
+
+# Checking Firewall Enabled
+echo "\t[Checking Firewall enabled]"
+ipfw=$(launchctl list | grep ipfw)
+if [ "$(echo $ipfw)" ]
+then
+	echo "\t \t IP Firewall enabled" 
+else
+	echo "\t \t IP Firewall disabled or not defined as a LaunchDaemon"
+fi
+
+# Disable Unnecessary Services 
+echo "\t[Checking Unnecessary Services]"
+services=(
+# Disabling IKE VPN Key Management Service
+# If a VPN is not used, disable the IKE VPN key management service
+com.apple.racoon
+# Disable Bonjour!!!
+# Disable DVD or CD Sharing
+com.apple.ODSAgent
+# Disable FTP
+ftp
+# Disable SMB
+nmbd
+smbd
+com.apple.smb.server.preferences
+com.apple.smb.sharepoints
+com.apple.smbfs_load_kext
+org.samba.winbindd
+# Disable AFP
+com.apple.afpfs_afpLoad
+com.apple.afpfs_checkafp
+# Disable NFS
+com.apple.nfsd
+com.apple.afpfs_afpLoad
+com.apple.afpfs_checkafp
+# Disable NFS
+com.apple.nfsd
+com.apple.lockd
+com.apple.statd.notify
+com.apple.portmap
+# Disable Web Sharing
+org.apache.httpd
+# Disable Remote Login
+ssh
+# Disable Remote Apple Events
+com.apple.eppc
+# Disable Xgrid Sharing
+com.apple.xgridagentd
+com.apple.xgridcontrollerd
+# Disable Internet Sharing
+com.apple.InternetSharin
+# Turn off AirPort Services using the following commands
+com.apple.airportPrefsUpdater
+com.apple.AirPort.wps
+com.apple.airportd
+# Turn off remote control service using the following command
+com.apple.RemoteUI
+# Turn off Screen Sharing services
+com.apple.RFBEventHelper
+com.apple.RFBRegisterMDNS_RemoteManagement
+com.apple.RFBRegisterMDNS_ScreenSharing
+com.apple.ScreenSharing
+# Turn off Remote Management service using the following
+com.apple.RemoteDesktop 
+com.apple.RemoteDesktop.PrivilegeProxy
+com.apple.RFBEventHelper
+# Turn off Bluetooth service using the following command
+com.apple.blued
+#
+com.apple.IIDCAssistant
+com.apple.UserNotificationCenter
+com.apple.webdavfs_load_kext
+org.postfix.master )
+for s in ${services[@]} 
+do
+	(launchctl list | grep "$s" 1>/dev/null) && echo "\t \t Service $s must be unloaded"
+done
+
+
+exit 0
