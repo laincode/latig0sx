@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 echo -------------------------------------------
-echo " Latigo - OS X Audit Tool                "
+echo " Latigo - OS X Auditing                  "
 echo "     by lain                             "
 echo -------------------------------------------
 
@@ -135,6 +135,20 @@ else
 	echo "\t \t FireWire kernel extensions not installed"
 fi
 
+# Checking Disk Quotas
+echo "\t [Checking Disk Quotas]"
+users="dscl . -list /Users PrimaryGroupID | grep ' 20$' | awk '{ print $1 }'"
+for u in
+do
+	blimit = $(quota -v $u | | grep / | awk '{ print $4 }')
+	inodelimit = $(quota -v $u | grep / | awk '{ print $7 }')  
+	echo "\t \t User: $u - Block limit: $blimit- File limit: $inodelimit"
+	if [ $blimit eq 0 and $inodelimit eq 0 ]
+	then
+		echo "\t Must set disk quota for user $u"
+	fi
+done
+
 ## Checking Global System Settings ##
 echo "\n[[Checking Global System Settings]]"
 
@@ -181,7 +195,16 @@ then
 		echo "\t \t /etc/motd doesnt have correct permissions"
 	fi
 #else
-#	echo "/etc/motd doesnt exist"
+#	echo "\t \t /etc/motd doesnt exist"
+fi
+
+# Checking Security Audit Enabled
+echo "\t[Checking Security Audit Enabled]"
+if [ "$(grep "AUDIT=-YES-" /etc/hostconfig)" ]
+then
+	echo "\t \t Security Audit Enabled"
+else
+	echo "\t \t Security Audit Disabled"
 fi
 
 ## Checking System Preferences ##
@@ -636,6 +659,35 @@ else
 	echo "\t \t FileVault disabled"
 fi
 
+# Enable Firewall Logging
+fwverb=$(sysctl net.inet.ip.fw.verbose | awk '{ print $2}')
+if [ "$(echo $fwverb)" == 2 ]
+then
+	echo "\t \t Firewall (IPFW) logging is enabled (value 2)"
+else 
+	if [ "$(echo $fwverb)" == 1 ]
+	then	
+		echo "\t \t Firewall (IPFW) logging is enabled"
+        	echo "\t \t Recomendation: set verbose to value 2"	
+	else
+		echo "\t \t Firewall (IPFW) logging is disabled"
+	fi
+fi
+
+# Enable Application Firewall Logging
+appfwverb=$(defaults read /Library/Preferences/com.apple.alf loggingenabled 2>&1)
+if [ "$(echo $appfwverb | awk '/does not exist/')" ]
+then
+	echo "\t \t Firewall Logging not setting"
+else
+	if [ $appfwverb == 1 ]
+        then
+		echo "\t \t Application Firewall Logging Enabled"
+	else
+		echo "\t \t Application Firewall Logging Disabled"
+	fi
+fi
+
 # Enable secure virtual memory 
 secureVirtualMemory=$(defaults read /Library/Preferences/com.apple.virtualMemory UseEncryptedSwap 2>&1)
 if [ "$(echo $secureVirtualMemory | awk '/does not exist/')" ]
@@ -800,7 +852,7 @@ else
 	echo "\t \t OK Disk Permisssions"
 fi
 
-# Secure User's Home Folder Permissions
+# Checking User's Home Folder Permissions
 echo "\t[Checking User's Home Folder Permissions]"
 users=$(ls /Users/)
 for us in $users
@@ -832,7 +884,7 @@ else
 	echo "\t \t Service uihandler is unloaded"
 fi
 
-## Checking Network Services
+## Checking Network Services ##
 echo "\n[[Checking Network Services]]"
 
 # Checking Application Firewall enabled
@@ -932,5 +984,15 @@ do
 	(launchctl list | grep "$s" 1>/dev/null) && echo "\t \t Service $s must be unloaded"
 done
 
+if [ -f /etc/launchd.conf ]
+then
+echo "\t[Checking the global umask file permission...]"
+	if [ $(grep umask launchd.conf | awk '{ print $2 }') eq 077 ]
+	then
+		"\t \t Umask file permission on /etc/launchd.conf is 077"
+	else
+		"\t \t Must change global umask file permission on /etc/launchd.conf to 077"
+	fi
+fi
 
 exit 0
