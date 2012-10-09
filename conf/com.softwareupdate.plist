@@ -10,7 +10,8 @@
 	<array>
 		 <string>/usr/sbin/softwareupdate</string>
 	         <string>--download</string>
-                 <string>--all</string>
+                 <string>--install</string>
+		 <string>--all</string>
                  <string>&gt;</string>
                  <string>/var/log/up2date.log</string>
         </array>

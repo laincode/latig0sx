@@ -53,7 +53,7 @@ echo "\t \t OStype: $(uname -a | awk '{ print $1}')"
 echo "\t \t OSrelease: $(uname -a | awk '{ print $3}')"
 
 # Kernel Secure Level
-echo "\t \t Secure Level: $(sysctl -a | grep kern.secure_kernel | awk '{ print $2}')"
+echo "\t \t Secure Level: $(sysctl -a | grep kern.securelevel: | awk '{ print $2}')"
 
 # Checking Software Updates
 echo "\t [Checking Software Updates]"

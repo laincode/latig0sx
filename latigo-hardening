@@ -54,11 +54,11 @@ then
 	echo "\t \t Done - kern.securelevel set to 1"
 fi
 
-printf "\t Download for the latest Software Updates [y] "
+printf "\t Create daemon for downloading and installing the latest Software Updates [y] "
 read softupdate
 if [ $softupdate == "y" ] || [ $softupdate == "" ]
 then
-	if [ ! -f conf/com.softwareupdate.plist ]
+	if [ -f conf/com.softwareupdate.plist ]
 	then
 		cp conf/com.softwareupdate.plist /System/Library/LaunchDaemons/
 		chown root:wheel /System/Library/LaunchDaemons/com.softwareupdate.plist
@@ -118,6 +118,7 @@ read blcontr
 if [ $blcontr == "y" ] || [ $blcontr == "" ]
 then
 	defaults write /Library/Preferences/com.apple.Bluetooth/ControllerPowerState -int 0 2>/dev/null
+	echo "\t \t Done - Bluetooth Controller disabled"
 fi
 
 printf "\t Disable IR remote control [y] "
@@ -125,6 +126,7 @@ read irremcontr
 if [ $irremcontr == "y" ] || [ $irremcontr == "" ]
 then
 	defaults write /Library/Preferences/com.apple.driver.AppleIRController DeviceEnabled -bool no
+	echo "\t \t Done - IR remote control disabled"
 fi
 
 printf "\t Disable internal microphone or line-in [y] "
@@ -132,6 +134,7 @@ read microph
 if [ $microph == "y" ] || [ $microph == "" ]
 then
 	osascript -e "set volume input volume 0"
+	echo "\t \t Done - internal microphone disabled"
 fi
 
 printf "\t Enable Application Firewall Logging [y] "
@@ -139,6 +142,7 @@ read apfwlog
 if [ $apfwlog == "y" ] || [ $apfwlog == "" ]
 then
 	defaults write /Library/Preferences/com.apple.alf loggingenabled 1
+	echo "\t \t Done - Application firewall logging enabled"
 fi
 
 printf "\t Enable Firewall (IPFW) Logging [y] "
@@ -146,6 +150,7 @@ read fwlog
 if [ $fwlog == "y" ] || [ $fwlog == "" ]
 then
 	sysctl -w net.inet.ip.fw.verbose=2
+	echo "\t \t Done - IPFW logging enabled"
 fi
 
 echo "\n[[Accounts Preferences]]"
@@ -155,13 +160,15 @@ read disroot
 if [ $disroot == "y" ] || [ $disroot == "" ]
 then 
 	dsenableroot -d
+	echo "\t \t Done - root account disabled"
 fi
 
 printf "\t Secure User's Home Folder Permissions [y] "
 read usrfoldperm
 if [ $usrfoldperm == "y" ] || [ $usrfoldperm == "" ]
 then
-	chmod go-rx /Users/$(inuser)/
+	chmod go-rx /Users/$inuser/
+	echo "\t \t Done - $inuser home folder permissions set to go-rx"
 fi
 
 printf "\t Secure /usr/bin/dscl [y] "
@@ -169,6 +176,7 @@ read secdscl
 if [ $secdscl == "y" ] || [ $secdscl == "" ]
 then
 	chmod 100 /usr/bin/dscl
+	echo "\t \t Done - /usr/bin/dscl sets to 100"
 fi
 
 printf "\t Disable Setuid and Setgid [y] "
@@ -201,6 +209,7 @@ then
 	do
 		chmod ug-s $u 2>/dev/null
 	done
+	echo "\t \t Done - Setuid and Setgid binaries disabled"
 fi
 
 echo "\n[[Applications]"
@@ -218,6 +227,7 @@ then
 	do
         	/bin/chmod a-r $d 2>/dev/null    
 	done
+	echo "\t \t Done - iSight camera disabled"
 fi
 
 echo "\n[[Network Services]]"
@@ -252,6 +262,7 @@ then
 	do
 		launchctl unload -w /System/Library/LaunchAgents/$a.plist 1>&2 2>/dev/null
 	done
+	echo "\t \t Done - Unnecessary Services disabled"
 fi
 
 printf "\t Disabling Remote Desktop [y] "
@@ -259,6 +270,7 @@ read remotedesk
 if [ $remotedesk == "y" ] || [ $remotedesk == "" ]
 then
 	/System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -stop 2>/dev/null
+	echo "\t \t Done - Remote Desktop disabled"
 fi
 
 if [ -f /etc/launchd.conf ]
@@ -268,7 +280,8 @@ then
 	if [ $umaskperm == "y" ] || [ $umaskperm == "" ]
 	then
 		echo "umask 077" >> /etc/launchd.conf
-	fi
+		echo "\t \t Done - global umask file permission changed to 077"
+	fi	
 fi
 
 echo "\n[[Manual Configuration]]"
