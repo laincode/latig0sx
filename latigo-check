@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (c) 2012 - lain <laina@riseup.net>
+# Copyright (c) 2012/2015 lain <laina@riseup.net>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,20 @@ echo " Latigo - OS X Auditing                  "
 echo "     by lain                             "
 echo -------------------------------------------
 
+if [ $# -lt 2 ] || [ $# -gt 2 ]
+then
+	echo " Usage: sudo $0 -u <user>\n"
+        exit 0
+fi
+
+if [ $1 == "-u" ]
+then
+	inuser=$2 
+else
+	echo " Usage: sudo $0 -u <user>\n"
+        exit 0
+fi
+
 ## Configuration Overview ##
 echo "\n[[Configuration Overview]]"
 
@@ -43,12 +57,17 @@ echo "\t \t Secure Level: $(sysctl -a | grep kern.secure_kernel | awk '{ print $
 
 # Checking Software Updates
 echo "\t [Checking Software Updates]"
-softwareUpdate=$(softwareupdate -l 2>&1) 
+softwareUpdate=$(softwareupdate -l 2>&1)
 if [ "$(echo $softwareUpdate | awk '/available./')" ] 
 then
 	echo "\t \t Up to date"
-else
-	echo "\t \t Software Available: $softwareUpdate"
+else 
+	if [ "$(echo $softwareUpdate | awk '/offline./')" ]
+	then
+		echo "\t \t The Internet connection appears to be offline"
+	else 
+		printf "\t \t Software Available: $softwareUpdate\n"
+	fi
 fi
 
 # Checking Download Important Updates Automatically Disabled
@@ -137,16 +156,24 @@ fi
 
 # Checking Disk Quotas
 echo "\t [Checking Disk Quotas]"
-users="dscl . -list /Users PrimaryGroupID | grep ' 20$' | awk '{ print $1 }'"
-for u in
+users="$(dscl . -list /Users PrimaryGroupID | grep ' 20$' | awk '{ print $1 }')"
+for u in $users
 do
-	blimit = $(quota -v $u | | grep / | awk '{ print $4 }')
-	inodelimit = $(quota -v $u | grep / | awk '{ print $7 }')  
-	echo "\t \t User: $u - Block limit: $blimit- File limit: $inodelimit"
-	if [ $blimit eq 0 and $inodelimit eq 0 ]
+	blimit=$(quota -v $u | grep / | awk '{ print $4 }')
+	inodelimit=$(quota -v $u | grep / | awk '{ print $7 }')  
+	echo "\t \t User: $u - Block limit: $blimit - File limit: $inodelimit"
+	if [ $blimit -eq 0 ] && [ $inodelimit -eq 0 ]
 	then
-		echo "\t Must set disk quota for user $u"
+		echo "\t \t Must set disk quota for user $u"
 	fi
+	if [ $blimit -eq 0 ] && [ $inodelimit -ne 0 ]
+        then
+                echo "\t \t Must set Block limit for user $u"
+        fi 
+        if [ $blimit -ne 0 ] && [ $inodelimit -eq 0 ]
+        then
+                echo "\t \t Must set File limit for user $u"
+        fi
 done
 
 ## Checking Global System Settings ##
@@ -199,7 +226,7 @@ then
 fi
 
 # Checking Security Audit Enabled
-echo "\t[Checking Security Audit Enabled]"
+echo "\t [Checking Security Audit Enabled]"
 if [ "$(grep "AUDIT=-YES-" /etc/hostconfig)" ]
 then
 	echo "\t \t Security Audit Enabled"
@@ -303,7 +330,7 @@ fi
 # -bool NO
 
 # Checking display of recent applications disabled
-appDisabled=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.recentitems Applications 2>&1)
+appDisabled=$(defaults read /Users/$inuser/Library/Preferences/com.apple.recentitems Applications 2>&1)
 if [ "$(echo $appDisabled | awk '/does not exist/')" ]
 then
 	echo "\t \t No recent applications displayed"
@@ -335,7 +362,7 @@ fi
 echo "\t [Checking CDs & DVDs Preferences]"
 
 # Disable blank CD automatic action 
-cdPrefBlank=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.digihub com.apple.digihub.blank.cd.appeared 2>&1)
+cdPrefBlank=$(defaults read /Users/$inuser/Library/Preferences/com.apple.digihub com.apple.digihub.blank.cd.appeared 2>&1)
 if [ "$(echo $cdPrefBlank | awk '/does not exist/')" ]
 then
 	echo "\t \t Blank CD automatic action not defined"
@@ -349,7 +376,7 @@ else
 fi	
 
 # Disable music CD automatic action 
-cdPrefMusic=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.digihub com.apple.digihub.cd.music.appeared action 2>1&)
+cdPrefMusic=$(defaults read /Users/$inuser/Library/Preferences/com.apple.digihub com.apple.digihub.cd.music.appeared action 2>1&)
 if [ "$(echo $cdPrefMusic | awk '/does not exist/')" ]
 then
 	echo "\t \t Music CD automatic action not defined"
@@ -363,7 +390,7 @@ else
 fi	
 
 # Disable picture CD automatic action
-cdPrefPicure=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.digihub com.apple.digihub.cd.picture.appeared action 2>1&)
+cdPrefPicure=$(defaults read /Users/$inuser/Library/Preferences/com.apple.digihub com.apple.digihub.cd.picture.appeared action 2>1&)
 if [ "$(echo $cdPrefPicture | awk '/does not exist/')" ]
 then
 	echo "\t \t Picture CD automatic action not defined"
@@ -377,7 +404,7 @@ else
 fi
 
 # Disable blank DVD automatic action
-dvdPrefBlank=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.digihub com.apple.digihub.blank.dvd.appeared action 2>&1)
+dvdPrefBlank=$(defaults read /Users/$inuser/Library/Preferences/com.apple.digihub com.apple.digihub.blank.dvd.appeared action 2>&1)
 if [ "$(echo $dvdPrefBlank | awk '/does not exist/')" ]
 then
         echo "\t \t Blank CD automatic action not defined"
@@ -390,7 +417,7 @@ then
 fi
 
 # Disable video DVD automatic action 
-dvdPrefVideo=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.digihub com.apple.digihub.dvd.video.appeared action 2>&1)
+dvdPrefVideo=$(defaults read /Users/$inuser/Library/Preferences/com.apple.digihub com.apple.digihub.dvd.video.appeared action 2>&1)
 if [ "$(echo $cdPrefVideo | awk '/does not exist/')" ]
 then
         echo "\t \t Video CD automatic action not defined"
@@ -438,7 +465,7 @@ echo "\t \t $(systemsetup -gettimezone)"
 echo "\t [Checking Desktop & Screen Saver Preferences]"
 
 # Set idle time for screen saver. Replace XX with the idle time in seconds 
-idleTimeScreenSaver=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.screensaver idleTime 2>&1)
+idleTimeScreenSaver=$(defaults read /Users/$inuser/Library/Preferences/com.apple.screensaver idleTime 2>&1)
 if [ "$(echo $idleTimeScreenSaver | awk '/does not exist/')" ]
 then
 	echo "\t \t Idle time for screen saver not setting"
@@ -447,7 +474,7 @@ else
 fi
 
 # Set host corner to activate screen saver
-hostcornerScreenSaver=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.dock wvous-corner_code-corner 2>&1)
+hostcornerScreenSaver=$(defaults read /Users/$inuser/Library/Preferences/com.apple.dock wvous-corner_code-corner 2>&1)
 if [ "$(echo $hostcornerScreenSaver | awk '/does not exist/')" ]
 then
 	echo "\t \t Host corner to activate screen saver not setting"
@@ -461,7 +488,7 @@ else
 fi
 
 # Set modifier key to 0 wvous-corner_code-modifier 
-modifierKey=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.dock wvous-corner_code-corner 2>&1)
+modifierKey=$(defaults read /Users/$inuser/Library/Preferences/com.apple.dock wvous-corner_code-corner 2>&1)
 if [ "$(echo $modifierKey | awk '/does not exist/')" ]
 then 
 	echo "\t \t Modifier key to 0 wvous-corner_code-modifier not setting"
@@ -475,7 +502,7 @@ else
 fi
 
 # Automatically hide and show Dock
-autoDock=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.dock autohide 2>&1)
+autoDock=$(defaults read /Users/$inuser/Library/Preferences/com.apple.dock autohide 2>&1)
 if [ "$(echo $autoDock | awk '/does not exist/')" ]
 then 
 	echo "\t \t Automatically hide and show Dock not setting"
@@ -556,12 +583,11 @@ fi
 networksetup -listnetworkserviceorder | grep "Hardware Port" | sed 's/(Hardware Port: //' | sed 's/,.*//' | \
 while read i
 do
-    ns=$(echo $i)
-    if [ "$(echo $(networksetup -getinfo $ns) | grep "IPv6: Off")" ]
+    if [ "$(echo $(networksetup -getinfo "$i") | grep "IPv6: Off")" ]
     then
-        echo "\t \t NetworkService $ns : IPv6 Off"
+        echo "\t \t NetworkService $i : IPv6 Off"
     else
-        echo "\t \t NetworkService $ns : IPv6 On"
+        echo "\t \t NetworkService $i : IPv6 On"
     fi
 done
 
@@ -582,7 +608,7 @@ else
 fi
 
 # Enable Require password to wake this computer from sleep or screen saver 
-askForPassword=$(defaults read /Users/$(whoami)/Library/Preferences/com.apple.screensaver askForPassword 2>&1)
+askForPassword=$(defaults read /Users/$inuser/Library/Preferences/com.apple.screensaver askForPassword 2>&1)
 if [ -z "$(echo $askForPassword | awk '/does not exist/')" ]
 then
 	if [ $askForPassword -eq 1 ]
