@@ -46,17 +46,32 @@ fi
 
 echo "\n[[Configuration Overview]]"
 
-printf "\t Setting Kern Secure Level to 1 [y] "
+printf "\t Setting Kern Secure Level [y] "
 read kernsec
-if [ $kernsec == "y" ] || [ $kernsec == "" ] 
+if [ -z $kernsec ] || [ $kernsec == "y" ] 
 then  
-	sysctl -w kern.securelevel=1 | 2>&1 | 1>/dev/null
-	echo "\t \t Done - kern.securelevel set to 1"
+	printf "\t \t Level Options: 0 (Insecure) 1 (Secure) 2 (Highly secure) [1] "  
+	read secoption
+	if [ -n $secoption ] && [ $secoption == "0" ]
+	then
+		sysctl -w kern.securelevel=1 | 2>&1 | 1>/dev/null
+		echo "\t \t Done - kern.securelevel set to $secoption"
+	fi
+	if [ -z $secoption ] || [ $secoption == "1" ]
+        then
+                sysctl -w kern.securelevel=1 | 2>&1 | 1>/dev/null
+                echo "\t \t Done - kern.securelevel set to $secoption"
+        fi
+	if [ -n $secoption ] && [ $secoption == "2" ]
+        then
+                sysctl -w kern.securelevel=2 | 2>&1 | 1>/dev/null
+                echo "\t \t Done - kern.securelevel set to $secoption"
+        fi
 fi
 
 printf "\t Create daemon for downloading and installing the latest Software Updates [y] "
 read softupdate
-if [ $softupdate == "y" ] || [ $softupdate == "" ]
+if [ -z $softupdate ] || [ $softupdate == "y" ]
 then
 	if [ -f conf/com.softwareupdate.plist ]
 	then
@@ -71,7 +86,7 @@ echo "\n[[System Hardware]]"
 
 printf "\t Setting Disk Quotas [y] "
 read diskquota
-if [ $diskquota == "y" ] || [ $diskquota == "" ]
+if [ -z $diskquota ] || [ $diskquota == "y" ]
 then
 	touch /.quota.ops.user
 	touch /.quota.ops.group
@@ -84,7 +99,7 @@ echo "\n[[Global System Settings]]"
 
 printf "\t Setting NVRAM Security Mode to Full [y] "
 read nvram
-if [ $nvram == "y" ] || [ $nvram == "" ]
+if [ -z $nvram ] || [ $nvram == "y" ]
 then
 	#full -> All commands except go require the security-password
 	nvram security-mode="full"
@@ -93,7 +108,7 @@ fi
 
 printf "\t Enabling Security Audit [y] "
 read secaudit
-if [ $secaudit == "y" ] || [ $secaudit == "" ]
+if [ -z $secaudit ] || [ $secaudit == "y" ]
 then
 	echo AUDIT=-YES- >> /etc/hostconfig
 	echo "\t \t Done - AUDIT=-YES on /etc/hostconfig"
@@ -103,7 +118,7 @@ echo "\n[[System Preferences]]"
 
 printf "\t Disable IPv6 [y] "
 read ipvseis
-if [ $ipvseis == "y" ] || [ $ipvseis == "" ]
+if [ -z $ipvseis ] || [ $ipvseis == "y" ]
 then
 	networksetup -listnetworkserviceorder | grep "Hardware Port" | sed 's/(Hardware Port: //' | sed 's/,.*//' | \
 	while read i
@@ -115,7 +130,7 @@ fi
 
 printf "\t Disable Bluetooth Controller [y] "
 read blcontr
-if [ $blcontr == "y" ] || [ $blcontr == "" ]
+if [ -z $blcontr ] || [ $blcontr == "y" ]
 then
 	defaults write /Library/Preferences/com.apple.Bluetooth/ControllerPowerState -int 0 2>/dev/null
 	echo "\t \t Done - Bluetooth Controller disabled"
@@ -123,7 +138,7 @@ fi
 
 printf "\t Disable IR remote control [y] "
 read irremcontr
-if [ $irremcontr == "y" ] || [ $irremcontr == "" ]
+if [ -z $irremcontr ] || [ $irremcontr == "y" ]
 then
 	defaults write /Library/Preferences/com.apple.driver.AppleIRController DeviceEnabled -bool no
 	echo "\t \t Done - IR remote control disabled"
@@ -131,7 +146,7 @@ fi
 
 printf "\t Disable internal microphone or line-in [y] "
 read microph
-if [ $microph == "y" ] || [ $microph == "" ]
+if [ -z $microph ] || [ $microph == "y" ]
 then
 	osascript -e "set volume input volume 0"
 	echo "\t \t Done - internal microphone disabled"
@@ -139,7 +154,7 @@ fi
 
 printf "\t Enable Application Firewall Logging [y] "
 read apfwlog
-if [ $apfwlog == "y" ] || [ $apfwlog == "" ]
+if [ -z $appfwlog ] || [ $apfwlog == "y" ]
 then
 	defaults write /Library/Preferences/com.apple.alf loggingenabled 1
 	echo "\t \t Done - Application firewall logging enabled"
@@ -147,9 +162,9 @@ fi
 
 printf "\t Enable Firewall (IPFW) Logging [y] "
 read fwlog
-if [ $fwlog == "y" ] || [ $fwlog == "" ]
+if [ -z $fwlog ] || [ $fwlog == "y" ]
 then
-	sysctl -w net.inet.ip.fw.verbose=2
+	sysctl -w net.inet.ip.fw.verbose=2 | 2>&1 | 1>/dev/null
 	echo "\t \t Done - IPFW logging enabled"
 fi
 
@@ -157,7 +172,7 @@ echo "\n[[Accounts Preferences]]"
 
 printf "\t Disable root account [y] "
 read disroot
-if [ $disroot == "y" ] || [ $disroot == "" ]
+if [ -z $disroot ] || [ $disroot == "y" ]
 then 
 	dsenableroot -d
 	echo "\t \t Done - root account disabled"
@@ -165,7 +180,7 @@ fi
 
 printf "\t Secure User's Home Folder Permissions [y] "
 read usrfoldperm
-if [ $usrfoldperm == "y" ] || [ $usrfoldperm == "" ]
+if [ -z $usrfoldperm ] || [ $usrfoldperm == "y" ]
 then
 	chmod go-rx /Users/$inuser/
 	echo "\t \t Done - $inuser home folder permissions set to go-rx"
@@ -173,7 +188,7 @@ fi
 
 printf "\t Secure /usr/bin/dscl [y] "
 read secdscl
-if [ $secdscl == "y" ] || [ $secdscl == "" ]
+if [ -z $secdscl ] || [ $secdscl == "y" ]
 then
 	chmod 100 /usr/bin/dscl
 	echo "\t \t Done - /usr/bin/dscl sets to 100"
@@ -181,7 +196,7 @@ fi
 
 printf "\t Disable Setuid and Setgid [y] "
 read uidgid
-if [ $uidgid == "y" ] || [ $uidgid == "" ]
+if [ -z $uidgid ] || [ $uidgid == "y" ]
 then
 	bins=(
 	/System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/MacOS/ARDAgent 
@@ -216,7 +231,7 @@ echo "\n[[Applications]"
 
 printf "\t Disable iSight camera [y] "
 read isight
-if [ $isight == "y" ] || [ $isight == "" ]
+if [ -z $isight ] || [ $isight == "y" ]
 then
 	drivers=(
 	/System/Library/QuickTime/QuickTimeUSBVDCDigitizer.component/Contents/MacOS/QuickTimeUSBVDCDigitizer
@@ -234,7 +249,7 @@ echo "\n[[Network Services]]"
 
 printf "\t Disable Unnecessary Services [y] "
 read services
-if [ $services == "y" ] || [ $services == "" ]
+if [ -z $services ] || [ $services == "y" ]
 then
 	srvDaemons=(
 	com.apple.blued
@@ -267,7 +282,7 @@ fi
 
 printf "\t Disabling Remote Desktop [y] "
 read remotedesk
-if [ $remotedesk == "y" ] || [ $remotedesk == "" ]
+if [ -z $remotedesk ] || [ $remotedesk == "y" ] 
 then
 	/System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -stop 2>/dev/null
 	echo "\t \t Done - Remote Desktop disabled"
@@ -277,7 +292,7 @@ if [ -f /etc/launchd.conf ]
 then
 	printf "\t Change the global umask file permission [y] "
 	read umaskperm
-	if [ $umaskperm == "y" ] || [ $umaskperm == "" ]
+	if [ -z $umaskperm ] || [ $umaskperm == "y" ]
 	then
 		echo "umask 077" >> /etc/launchd.conf
 		echo "\t \t Done - global umask file permission changed to 077"
