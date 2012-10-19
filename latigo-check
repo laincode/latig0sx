@@ -229,9 +229,22 @@ fi
 echo "\t [Checking Security Audit Enabled]"
 if [ "$(grep "AUDIT=-YES-" /etc/hostconfig)" ]
 then
-	echo "\t \t Security Audit Enabled"
+	echo "\t \t Audit in /etc/hostconfig is enabled"
 else
-	echo "\t \t Security Audit Disabled"
+	echo "\t \t Audit in /etc/hostconfig is disabled"
+fi
+
+secaudit=$(launchctl list | grep com.apple.auditd)
+if [ "$(echo $secaudit)" ]
+then
+        if [ "$(echo $secaudit | awk ' { print $1 } ')" == "-" ]
+        then 
+                echo "\t \t Security Audit daemon loaded but not running"
+        else
+                echo "\t \t Security Audit daemon is running"
+        fi
+else
+        echo "\t \t Security Audit daemon unloaded"
 fi
 
 ## Checking System Preferences ##
@@ -592,19 +605,25 @@ do
 done
 
 # Checking the receiving of faxes is disabled
-if [ "$(launchctl list | grep com.apple.efax)" ]
+faxjob=$(launchctl list | grep com.apple.efax)
+if [ "$(echo $faxjb)"  ]
 then
-	echo "\t \t Receiving faxes enabled"
+	if [ "$(echo $faxjob | awk ' { print $1 } ')" == "-" ]
+	then 
+		echo "\t \t Receiving faxes job loaded but not running"
+	else
+		echo "\t \t Receiving faxes job is running"
+	fi
 else
-	echo "\t \t Receiving faxes disabled"
+	echo "\t \t Receiving faxes job unloaded"
 fi
 
 # Checking printer sharing disabled  
 if grep "Port 631" /etc/cups/cupsd.conf
 then
-	echo "\t \t Printer Sharing on"
+	echo "\t \t Printer Sharing enabled"
 else 
-	echo "\t \t Printer Sharing not on" 
+	echo "\t \t Printer Sharing disabled" 
 fi
 
 # Enable Require password to wake this computer from sleep or screen saver 
@@ -828,23 +847,41 @@ fi
 # Disable VoiceOver service
 echo "\t[Checking VoiceOver service disabled]"
 
-if [ "$(launchctl list | grep com.apple.VoiceOver)" ]
+voicjob=$(launchctl list | grep com.apple.VoiceOver)
+if [ "$(echo $voicjob)" ]
 then
-	echo "\t \t Service VoiceOver must be unloaded"
+	if [ "$(echo $voicjob | awk ' { print $1 } ')" == "-" ]
+	then
+		echo "\t \t Service VoiceOver loaded but not running"
+	else
+		echo "\t \t Service VoiceOver is running"
+	fi
 else
 	echo "\t \t Service VoiceOver is unloaded"
 fi
 
-if [ "$(launchctl list | grep com.apple.ScreenReaderUIServer)" ]
+sreadjob=$(launchctl list | grep com.apple.ScreenReaderUIServer)
+if [ "$(echo $sreadjob)" ]
 then
-	echo "\t \t Service ScreenReaderUIServer must be unloaded"
+	if [ "$(echo $sreadjob | awk ' { print $1 } ')" == "-" ] 
+	then
+		echo "\t \t Service ScreenReaderUIServer loaded but not running"
+	else
+		echo "\t \t Service ScreenReaderUIServer is running"	
+	fi
 else
 	echo "\t \t Service ScreenReaderUIServer is unloaded"
 fi
 
-if [ "$(launchctl list | grep com.apple.scrod)" ]
+scrojob=$(launchctl list | grep com.apple.scrod)
+if [ "$(echo $scrojob)" ]
 then
-	echo "\t \t Service scrod must be unloaded"
+	if [ "$(echo $sreadjob | awk ' { print  $1 } ')" == "-" ]
+	then
+		echo "\t \t Service scrod loaded but not running"
+	else
+		echo "\t \t Service scrod is running"
+	fi
 else
 	echo "\t \t Service scrod is unloaded"
 fi
@@ -896,25 +933,76 @@ done
 ## Checking Applications ##
 echo "\n[[Checking Applications]]"
 # Disabling iSync
-if [ "$(launchctl list | grep com.apple.syncservices.SyncServer)" ]
+isyncjob=$(launchctl list | grep com.apple.syncservices.SyncServer)
+if [ "$(echo $isyncjob)" ]
 then
-	echo "\t \t Service SyncServer must be unloaded"
+	if [ "$(echo $isyncjob | awk ' { print $2 } ')" == "-" ]
+	then
+		echo "\t \t Service SyncServer loaded but not running"
+	else
+		echo "\t \t Service SyncServer is running"
+	fi
 else
 	echo "\t \t Service SyncServer is unloaded"
 fi
 
-if [ "$(launchctl list | grep com.apple.syncservices.uihandler)" ]
+uihanjob=$(launchctl list | grep com.apple.syncservices.uihandler)
+if [ "$(echo $uihanjob)" ]
 then
-	echo "\t \t Service uihandler must be unloaded"
+	if ["$(echo $uihanjob | awk ' print { $2 } ')" == "-" ]
+	then 		
+		echo "\t \t Service uihandler loaded but not running"
+	else
+		echo "\t \t Service uihandler is running"
+	fi
 else
 	echo "\t \t Service uihandler is unloaded"
+fi
+
+## Checking System Utilities ##
+echo "\n[[Checking System Utilities]]"
+
+echo "\t[Checking Secure Remove (srm) installed]"
+if [ "$(srm 2>&1 | grep "command not found")" ]
+then
+	echo "\t \t Secure Remove (srm) not installed"	
+else
+	echo "\t \t Secure Remove (srm) installed"
+fi
+
+echo "\t[Checking Finder Secure Remove enabled]"
+findersec=$(defaults read com.apple.finder EmptyTrashSecurely 2>&1)
+if [ "$(echo $findersec | awk '/does not exist/')" ]
+then
+        echo "\t \t Finder Secure Remove not installed"
+else
+        if [ $findersec -eq 0 ]
+        then
+                echo "\t \t Finder Secure Remove disabled"
+        else
+                echo "\t \t Finder Secure Remove enabled"
+ 	fi
+fi
+
+echo "\t[Checking Backup Time Machine Intervals updated]"
+tminter=$(launchctl list | grep com.apple.backupd-auto)
+if [ "$(echo $tminter)" ]
+then
+        if [ "$(echo $tminter | awk ' { print $2 } ')" == "-" ]
+        then
+                echo "\t \t Backup Time Machine Intervals daemon loaded but not running"
+        else
+                echo "\t \t Backup Time Machine Intervals daemon is running"
+        fi
+else
+        echo "\t \t Backup Time Machine Intervals daemon is unloaded"
 fi
 
 ## Checking Network Services ##
 echo "\n[[Checking Network Services]]"
 
 # Checking Application Firewall enabled
-echo "\t[Checking application firewall enabled]"
+echo "\t[Checking Application Firewall enabled]"
 # 0 = off 
 # 1 = on for specific services 
 # 2 = on for essential services
@@ -932,15 +1020,8 @@ else
 	echo "\t \t Application Firewall disabled"
 fi
 
-# Checking Firewall Enabled
-echo "\t[Checking Firewall enabled]"
-ipfw=$(launchctl list | grep ipfw)
-if [ "$(echo $ipfw)" ]
-then
-	echo "\t \t IP Firewall enabled" 
-else
-	echo "\t \t IP Firewall disabled or not defined as a LaunchDaemon"
-fi
+# Checking IP Firewall Enabled
+#echo "\t[Checking IP Firewall enabled]"
 
 # Disable Unnecessary Services 
 echo "\t[Checking Unnecessary Services]"
@@ -1013,7 +1094,7 @@ done
 if [ -f /etc/launchd.conf ]
 then
 echo "\t[Checking the global umask file permission...]"
-	if [ $(grep umask launchd.conf | awk '{ print $2 }') eq 077 ]
+	if [ $(grep umask launchd.conf | awk '{ print $2 }') -eq 077 ]
 	then
 		"\t \t Umask file permission on /etc/launchd.conf is 077"
 	else
