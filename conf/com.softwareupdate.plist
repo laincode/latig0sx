@@ -22,6 +22,10 @@
         	<key>Minute</key>
         	<integer>03</integer>
     	</dict>
+        <key>UserName</key>
+        <string>root</string>
+        <key>GroupName</key>
+        <string>wheel</string>
 </dict>
 </plist>
 
