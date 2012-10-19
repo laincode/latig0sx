@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.apple.backupd-auto</string>
+	<key>Disabled</key>
+	<true/>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/System/Library/CoreServices/backupd.bundle/Contents/Resources/backupd-helper</string>
+		<string>-auto</string>
+	</array>
+	<key>LaunchEvents</key>
+	<dict>
+		<key>com.apple.time</key>
+		<dict>
+			<key>Backup Interval</key>
+			<dict>
+				<key>StartInterval</key>
+				<integer>3600</integer>
+				<key>MaintenanceWakeBehavior</key>
+				<string>Once</string>
+			</dict>
+		</dict>
+	</dict>
+	<key>RunAtLoad</key>
+	<false/>
+	<key>KeepAlive</key>
+	<false/>
+	<key>EnableTransactions</key>
+	<true/>
+</dict>
+</plist>
