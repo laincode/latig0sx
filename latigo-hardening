@@ -77,8 +77,10 @@ then
 	then
 		cp conf/com.softwareupdate.plist /System/Library/LaunchDaemons/
 		chown root:wheel /System/Library/LaunchDaemons/com.softwareupdate.plist
-		launchctl load -w /System/Library/LaunchDaemons/com.softwareupdate.plist
-		echo "\t \t Done - LaunchDaemon com.softwareupdate.plist created" 
+		launchctl load -w /System/Library/LaunchDaemons/com.softwareupdate.plist > /dev/null 2>&1
+		echo "\t \t Done - com.softwareupdate.plist daemon loaded" 
+		launchctl start com.softwareupdate
+		echo "\t \t Done - com.softwareupdate.plist daemon started"
 	fi
 fi
 
@@ -92,7 +94,7 @@ then
 	touch /.quota.ops.group
 	quotaon -a
 	edquota $inuser
-	echo "\t \t Done - Disk Quotas"
+	echo "\t \t Done - Disk Quotas enabled"
 fi
 
 echo "\n[[Global System Settings]]"
@@ -103,15 +105,24 @@ if [ -z $nvram ] || [ $nvram == "y" ]
 then
 	#full -> All commands except go require the security-password
 	nvram security-mode="full"
-	echo "\t \t Done - NVRAM security-mode set to full" 
+	echo "\t \t Done - NVRAM security-mode is set to full" 
 fi
 
-printf "\t Enabling Security Audit [y] "
+printf "\t Enabling Security Auditing [y] "
 read secaudit
 if [ -z $secaudit ] || [ $secaudit == "y" ]
 then
-	echo AUDIT=-YES- >> /etc/hostconfig
-	echo "\t \t Done - AUDIT=-YES on /etc/hostconfig"
+	if [ -z "$(grep "AUDIT=-YES" /etc/hostconfig)" ]
+	then
+		echo AUDIT=-YES- >> /etc/hostconfig
+		echo "\t \t Done - AUDIT=-YES in /etc/hostconfig"
+	else
+		echo "\t \t Done - AUDIT=-YES in /etc/hostconfig"
+	fi
+	launchctl load -w /System/Library/LaunchDaemons/com.apple.auditd.plist > /dev/null 2>&1
+	echo "\t \t Done - com.apple.auditd loaded"
+	launchctl start com.apple.auditd
+	echo "\t \t Done - com.apple.auditd started"
 fi
 
 echo "\n[[System Preferences]]"
@@ -125,7 +136,7 @@ then
 	do
 		networksetup -setv6off "$i"
 	done
-	echo "\t \t Done - IPv6 Network interfaces setting"
+	echo "\t \t Done - IPv6 Network interfaces set off"
 fi
 
 printf "\t Disable Bluetooth Controller [y] "
@@ -154,7 +165,7 @@ fi
 
 printf "\t Enable Application Firewall Logging [y] "
 read apfwlog
-if [ -z $appfwlog ] || [ $apfwlog == "y" ]
+if [ -z $apfwlog ] || [ $apfwlog == "y" ]
 then
 	defaults write /Library/Preferences/com.apple.alf loggingenabled 1
 	echo "\t \t Done - Application firewall logging enabled"
@@ -227,6 +238,14 @@ then
 	echo "\t \t Done - Setuid and Setgid binaries disabled"
 fi
 
+printf "\t Flush Directory Service cache [y] "
+read dscache
+if [ -z $dscache ] || [ $dscache == "y" ]
+then
+	dscacheutil -flushcache
+	echo "\t \t Done - Entire cache flushed"
+fi
+
 echo "\n[[Applications]"
 
 printf "\t Disable iSight camera [y] "
@@ -243,6 +262,54 @@ then
         	/bin/chmod a-r $d 2>/dev/null    
 	done
 	echo "\t \t Done - iSight camera disabled"
+fi
+
+echo "\n[[System Utilities]]"
+
+if [ "$(srm 2>&1 | grep "command not found")" ]
+then
+	printf "\t Install Secure Remove (srm) and make alias to rm [y] "
+	read secrm
+	if [ -z $secrm ] || [ $secrm == "y" ]
+	then
+		if [ -z "$(port 2>&1 | grep "command not found")" ] 
+		then
+			port install srm
+			alias rm=srm	
+			echo "\t \t Done - srm installed and rm alias to srm created"
+		else
+			echo "\t \t MacPorts must be installed"
+		fi
+	fi
+else
+	printf "\t Secure Remove (srm) is installed. Make alias to rm [y] "
+	read secrm
+        if [ -z $secrm ] || [ $secrm == "y" ]
+	then
+		alias rm=srm
+                echo "\t \t Done - rm alias to srm"	
+	fi
+fi
+
+printf "\t Enable Finder secure remove [y] "
+read findsrm
+if [ -z $findsrm ] || [ $findsrm == "y" ]
+then
+	defaults write com.apple.finder EmptyTrashSecurely -bool true
+	killall Finder
+	echo "\t \t Done - EmptyTrashSecurely on com.apple.finder sets to true"
+fi
+
+printf "\t Update Backup Time Machine Intervals [y] "
+read bktm
+if [ -z $bktm ] || [ $bktm == "y" ]
+then
+	cp conf/com.apple.backupd-auto.plist /System/Library/LaunchDaemons/
+	chown root:wheel /System/Library/LaunchDaemons/com.apple.backupd-auto.plist
+	launchctl load -w /System/Library/LaunchDaemons/com.apple.backupd-auto.plist > /dev/null 2>&1
+	echo "\t \t Done - Updated StartInterval to 3600 on Daemon com.apple.backupd-auto"	
+	launchctl start com.apple.backupd-auto
+        echo "\t \t Done - Daemon com.apple.backupd-auto started"
 fi
 
 echo "\n[[Network Services]]"
