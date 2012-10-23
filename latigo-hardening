@@ -112,13 +112,18 @@ printf "\t Enabling Security Auditing [y] "
 read secaudit
 if [ -z $secaudit ] || [ $secaudit == "y" ]
 then
-	if [ -z "$(grep "AUDIT=-YES" /etc/hostconfig)" ]
+	if [ "$(grep "^AUDIT" /etc/hostconfig)" ]
 	then
-		echo AUDIT=-YES- >> /etc/hostconfig
-		echo "\t \t Done - AUDIT=-YES in /etc/hostconfig"
+		if [ -z "$(grep "^AUDIT=-YES-" /etc/hostconfig)" ]
+		then
+			sed 's/^AUDIT.*$/AUDIT=-YES-/g' /etc/hostconfig > /etc/hostconfig.tmp
+			cp /etc/hostconfig.tmp /etc/hostconfig
+			rm /etc/hostconfig.tmp
+		fi
 	else
-		echo "\t \t Done - AUDIT=-YES in /etc/hostconfig"
+		echo AUDIT=-YES- >> /etc/hostconfig
 	fi
+	echo "\t \t Done - AUDIT=-YES in /etc/hostconfig"
 	launchctl load -w /System/Library/LaunchDaemons/com.apple.auditd.plist > /dev/null 2>&1
 	echo "\t \t Done - com.apple.auditd loaded"
 	launchctl start com.apple.auditd
@@ -246,6 +251,24 @@ then
 	echo "\t \t Done - Entire cache flushed"
 fi
 
+printf "\t Enable Timestamps in Bash History [y] "
+read tmstamps
+if [ -z $tmstamps ] || [ $tmstamps == "y" ]
+then
+	if [ "$(grep "^export HISTTIMEFORMAT" /Users/$inuser/.profile)" ]
+	then
+		if [ -z "$(grep "^export HISTTIMEFORMAT=\"\[%m.%d.%y\]@\[%T\] \"" /Users/$inuser/.profile)" ]
+		then
+			sed 's/^export HISTTIMEFORMAT.*$/export HISTTIMEFORMAT="[%m.%d.%y]@[%T] "/g' /Users/$inuser/.profile > /Users/$inuser/.profile.tmp
+			cp /Users/$inuser/.profile.tmp /Users/$inuser/.profile
+			rm /Users/$inuser/.profile.tmp
+		fi
+	else
+		echo 'export HISTTIMEFORMAT="[%m.%d.%y]@[%T] "' >> /Users/$inuser/.profile
+	fi
+	echo "\t \t Done - HISTTIMEFORMAT variable set in /Users/$inuser/.profile"
+fi 
+
 echo "\n[[Applications]"
 
 printf "\t Disable iSight camera [y] "
@@ -304,12 +327,15 @@ printf "\t Update Backup Time Machine Intervals [y] "
 read bktm
 if [ -z $bktm ] || [ $bktm == "y" ]
 then
-	cp conf/com.apple.backupd-auto.plist /System/Library/LaunchDaemons/
-	chown root:wheel /System/Library/LaunchDaemons/com.apple.backupd-auto.plist
-	launchctl load -w /System/Library/LaunchDaemons/com.apple.backupd-auto.plist > /dev/null 2>&1
-	echo "\t \t Done - Updated StartInterval to 3600 on Daemon com.apple.backupd-auto"	
-	launchctl start com.apple.backupd-auto
-        echo "\t \t Done - Daemon com.apple.backupd-auto started"
+	if [ -f conf/com.apple.backup-auto.plist ]
+        then
+		cp conf/com.apple.backupd-auto.plist /System/Library/LaunchDaemons/
+		chown root:wheel /System/Library/LaunchDaemons/com.apple.backupd-auto.plist
+		launchctl load -w /System/Library/LaunchDaemons/com.apple.backupd-auto.plist > /dev/null 2>&1
+		echo "\t \t Done - Updated StartInterval to 3600 on Daemon com.apple.backupd-auto"	
+		launchctl start com.apple.backupd-auto
+		echo "\t \t Done - Daemon com.apple.backupd-auto started"
+	fi
 fi
 
 echo "\n[[Network Services]]"
@@ -361,12 +387,23 @@ then
 	read umaskperm
 	if [ -z $umaskperm ] || [ $umaskperm == "y" ]
 	then
-		echo "umask 077" >> /etc/launchd.conf
+		if [ "$(grep "^umask" /etc/launchd.conf)" ]
+		then
+			if [ -z "$(grep "^umask 077" /etc/launchd.conf)" ]
+			then
+				sed 's/umask.*$/umask\ 077/g' /etc/launchd.conf > /etc/launchd.conf.tmp
+				cp /etc/launchd.conf.tmp /etc/launchd.conf
+				rm /etc/launchd.conf.tmp
+			fi
+		else
+			echo "umask 077" >> /etc/launchd.conf
+		fi
 		echo "\t \t Done - global umask file permission changed to 077"
-	fi	
+	fi
 fi
 
 echo "\n[[Manual Configuration]]"
 echo "\t FolderActions (AppleScript) on LaunchAgents and LaunchDaemons - add new item alert.scpt for overwrite protection"
 
+echo "\n--------------------------------"
 exit 0
