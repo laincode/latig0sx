@@ -381,11 +381,11 @@ then
 	echo "\t \t Done - Remote Desktop disabled"
 fi
 
-if [ -f /etc/launchd.conf ]
+printf "\t Change the global umask file permission [y] "
+read umaskperm
+if [ -z $umaskperm ] || [ $umaskperm == "y" ]
 then
-	printf "\t Change the global umask file permission [y] "
-	read umaskperm
-	if [ -z $umaskperm ] || [ $umaskperm == "y" ]
+	if [ -f /etc/launchd.conf ]
 	then
 		if [ "$(grep "^umask" /etc/launchd.conf)" ]
 		then
@@ -398,6 +398,9 @@ then
 		else
 			echo "umask 077" >> /etc/launchd.conf
 		fi
+		echo "\t \t Done - global umask file permission changed to 077"
+	else
+		echo "umask 077" >> /etc/launchd.conf
 		echo "\t \t Done - global umask file permission changed to 077"
 	fi
 fi
