@@ -930,6 +930,16 @@ do
     fi
 done
 
+# Checking Timestamps in Bash History
+echo "\t[Checking Timestamps in Bash History]"
+tmstamps=$(grep "^export HISTTIMEFORMAT" /Users/$inuser/.profile)
+if [ "$(echo $tmstamps)" ]
+then
+	echo "\t \t Timestamps $tmstamps enabled in /Users/$inuser/.profile"
+else
+	echo "\t \t Timestamps in bash history not enabled"
+fi
+
 ## Checking Applications ##
 echo "\n[[Checking Applications]]"
 # Disabling iSync
