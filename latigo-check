@@ -1119,4 +1119,35 @@ echo "\t[Checking the global umask file permission...]"
 	fi
 fi
 
+echo "[[Checking Protections]]"
+
+echo "\t[Checking DEP (Data Execution Prevention)]"
+if [ "$(sysctl kern.nx | awk ' { print $2 }' )" -eq 1 ]
+then
+ 	echo "\t \t Hardware-enforced DEP enabled"
+else
+ 	echo "\t \t Hardware-enforced DEP disabled"
+fi
+ 
+echo "\t[Checking ASLR (Address Space Layout Randomization)]"
+app=`ls /Applications/`
+echo "$app" | while read i
+do
+        a=`echo $i`
+	dot="."
+        if [ "$( echo ${a:0:1} )" != "$dot" ]
+        then
+	        a=$(echo "$i")
+                b=${a%.*}
+                if [ "$(otool -hv /Applications/$a/Contents/MacOS/$b 2>/dev/null | awk '
+{ print $11 }' | grep PIE )" ]
+                then
+                        echo "\t \t $b has ASLR enabled"
+                else
+                        echo "\t \t $b has ASLR disabled"
+                fi
+        fi
+done
+
+
 exit 0
