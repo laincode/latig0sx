@@ -1,0 +1,15 @@
+#
+#  Latig0sx - Auditing & Hardening OS X
+#
+
+Usage:
+
+1) Check your System Configuration
+
+	$ sudo ./latigo-check -u <user>
+
+2) System Hardening
+
+	$ sudo ./latigo-hardening -u <user>
+
+
