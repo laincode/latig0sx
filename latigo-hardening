@@ -32,7 +32,7 @@ echo -------------------------------------------
 
 if [ $# -lt 2 ] || [ $# -gt 2 ]
 then
-        echo " Usage: sudo $0 -u <user>\n"
+        echo "\n Usage: sudo $0 -u <user>\n"
         exit 0
 fi
 
@@ -40,43 +40,43 @@ if [ $1 == "-u" ]
 then
         inuser=$2
 else
-        echo " Usage: sudo $0 -u <user>\n"
+        echo "\n Usage: sudo $0 -u <user>\n"
         exit 0
 fi
 
 ## Check if user input exists
 if [ -z "$(grep $inuser /etc/passwd)" ] && [ ! -d /Users/$inuser ]
 then
-        echo "\n Error - User $inuser doesn't exist. Enter a valid user.\n "
+        echo "\nError - User $inuser doesn't exist. Enter a valid user\n "
         exit 0
 fi
 
 echo "\n[[Configuration Overview]]"
 
-printf "\t Setting Kern Secure Level [y] "
+printf "\tSet Kern Secure Level [y/n] (y) ? "
 read kernsec
 if [ -z $kernsec ] || [ $kernsec == "y" ] 
 then  
-	printf "\t \t Level Options: 0 (Insecure) 1 (Secure) 2 (Highly secure) [1] "  
+	printf "\t \tLevel Options: 0 (Insecure) 1 (Secure) 2 (Highly secure) [0/1/2] (1) ? "  
 	read secoption
 	if [ -n $secoption ] && [ $secoption == "0" ]
 	then
 		sysctl -w kern.securelevel=1 | 2>&1 | 1>/dev/null
-		echo "\t \t Done - kern.securelevel set to $secoption"
+		echo "\t \tDone - kern.securelevel set to $secoption"
 	fi
 	if [ -z $secoption ] || [ $secoption == "1" ]
         then
                 sysctl -w kern.securelevel=1 | 2>&1 | 1>/dev/null
-                echo "\t \t Done - kern.securelevel set to $secoption"
+                echo "\t \tDone - kern.securelevel set to $secoption"
         fi
 	if [ -n $secoption ] && [ $secoption == "2" ]
         then
                 sysctl -w kern.securelevel=2 | 2>&1 | 1>/dev/null
-                echo "\t \t Done - kern.securelevel set to $secoption"
+                echo "\t \tDone - kern.securelevel set to $secoption"
         fi
 fi
 
-printf "\t Create daemon for downloading and installing the latest Software Updates [y] "
+printf "\tCreate daemon for downloading and installing the latest Software Updates [y/n] (y) ? "
 read softupdate
 if [ -z $softupdate ] || [ $softupdate == "y" ]
 then
@@ -85,15 +85,15 @@ then
 		cp conf/com.softwareupdate.plist /System/Library/LaunchDaemons/
 		chown root:wheel /System/Library/LaunchDaemons/com.softwareupdate.plist
 		launchctl load -w /System/Library/LaunchDaemons/com.softwareupdate.plist > /dev/null 2>&1
-		echo "\t \t Done - com.softwareupdate.plist daemon loaded" 
+		echo "\t \tDone - com.softwareupdate.plist daemon loaded" 
 		launchctl start com.softwareupdate
-		echo "\t \t Done - com.softwareupdate.plist daemon started"
+		echo "\t \tDone - com.softwareupdate.plist daemon started"
 	fi
 fi
 
 echo "\n[[System Hardware]]"
 
-printf "\t Setting Disk Quotas [y] "
+printf "\tSet Disk Quotas [y/n] (y) ? "
 read diskquota
 if [ -z $diskquota ] || [ $diskquota == "y" ]
 then
@@ -101,21 +101,21 @@ then
 	touch /.quota.ops.group
 	quotaon -a
 	edquota $inuser
-	echo "\t \t Done - Disk Quotas enabled"
+	echo "\t \tDone - Disk Quotas enabled"
 fi
 
 echo "\n[[Global System Settings]]"
 
-printf "\t Setting NVRAM Security Mode to Full [y] "
+printf "\tSet NVRAM Security Mode to Full [y/n] (y) ? "
 read nvram
 if [ -z $nvram ] || [ $nvram == "y" ]
 then
 	#full -> All commands except go require the security-password
 	nvram security-mode="full"
-	echo "\t \t Done - NVRAM security-mode is set to full" 
+	echo "\t \tDone - NVRAM security-mode is set to full" 
 fi
 
-printf "\t Enabling Security Auditing [y] "
+printf "\tEnable Security Auditing [y/n] (y) ? "
 read secaudit
 if [ -z $secaudit ] || [ $secaudit == "y" ]
 then
@@ -130,16 +130,16 @@ then
 	else
 		echo AUDIT=-YES- >> /etc/hostconfig
 	fi
-	echo "\t \t Done - AUDIT=-YES in /etc/hostconfig"
+	echo "\t \tDone - AUDIT=-YES in /etc/hostconfig"
 	launchctl load -w /System/Library/LaunchDaemons/com.apple.auditd.plist > /dev/null 2>&1
-	echo "\t \t Done - com.apple.auditd loaded"
+	echo "\t \tDone - com.apple.auditd loaded"
 	launchctl start com.apple.auditd
-	echo "\t \t Done - com.apple.auditd started"
+	echo "\t \tDone - com.apple.auditd started"
 fi
 
 echo "\n[[System Preferences]]"
 
-printf "\t Disable IPv6 [y] "
+printf "\tDisable IPv6 [y/n] (y) ? "
 read ipvseis
 if [ -z $ipvseis ] || [ $ipvseis == "y" ]
 then
@@ -148,76 +148,76 @@ then
 	do
 		networksetup -setv6off "$i"
 	done
-	echo "\t \t Done - IPv6 Network interfaces set off"
+	echo "\t \tDone - IPv6 Network interfaces set off"
 fi
 
-printf "\t Disable Bluetooth Controller [y] "
+printf "\tDisable Bluetooth Controller [y/n] (y) ? "
 read blcontr
 if [ -z $blcontr ] || [ $blcontr == "y" ]
 then
 	defaults write /Library/Preferences/com.apple.Bluetooth/ControllerPowerState -int 0 2>/dev/null
-	echo "\t \t Done - Bluetooth Controller disabled"
+	echo "\t \tDone - Bluetooth Controller disabled"
 fi
 
-printf "\t Disable IR remote control [y] "
+printf "\tDisable IR remote control [y/n] (y) ? "
 read irremcontr
 if [ -z $irremcontr ] || [ $irremcontr == "y" ]
 then
 	defaults write /Library/Preferences/com.apple.driver.AppleIRController DeviceEnabled -bool no
-	echo "\t \t Done - IR remote control disabled"
+	echo "\t \tDone - IR remote control disabled"
 fi
 
-printf "\t Disable internal microphone or line-in [y] "
+printf "\tDisable internal microphone or line-in [y/n] (y) ? "
 read microph
 if [ -z $microph ] || [ $microph == "y" ]
 then
 	osascript -e "set volume input volume 0"
-	echo "\t \t Done - internal microphone disabled"
+	echo "\t \tDone - internal microphone disabled"
 fi
 
-printf "\t Enable Application Firewall Logging [y] "
+printf "\tEnable Application Firewall Logging [y/n] (y) ? "
 read apfwlog
 if [ -z $apfwlog ] || [ $apfwlog == "y" ]
 then
 	defaults write /Library/Preferences/com.apple.alf loggingenabled 1
-	echo "\t \t Done - Application firewall logging enabled"
+	echo "\t \tDone - Application firewall logging enabled"
 fi
 
-printf "\t Enable Firewall (IPFW) Logging [y] "
+printf "\tEnable Firewall (IPFW) Logging [y/n] (y) ? "
 read fwlog
 if [ -z $fwlog ] || [ $fwlog == "y" ]
 then
 	sysctl -w net.inet.ip.fw.verbose=2 | 2>&1 | 1>/dev/null
-	echo "\t \t Done - IPFW logging enabled"
+	echo "\t \tDone - IPFW logging enabled"
 fi
 
 echo "\n[[Accounts Preferences]]"
 
-printf "\t Disable root account [y] "
+printf "\tDisable root account [y/n] (y) ? "
 read disroot
 if [ -z $disroot ] || [ $disroot == "y" ]
 then 
 	dsenableroot -d
-	echo "\t \t Done - root account disabled"
+	echo "\t \tDone - root account disabled"
 fi
 
-printf "\t Secure User's Home Folder Permissions [y] "
+printf "\tSecure User's Home Folder Permissions [y/n] (y) ? "
 read usrfoldperm
 if [ -z $usrfoldperm ] || [ $usrfoldperm == "y" ]
 then
 	chmod go-rx /Users/$inuser/
-	echo "\t \t Done - $inuser home folder permissions set to go-rx"
+	echo "\t \tDone - $inuser home folder permissions set to go-rx"
 fi
 
-printf "\t Secure /usr/bin/dscl [y] "
+printf "\tSecure /usr/bin/dscl [y/n] (y) ? "
 read secdscl
 if [ -z $secdscl ] || [ $secdscl == "y" ]
 then
 	chmod 100 /usr/bin/dscl
-	echo "\t \t Done - /usr/bin/dscl sets to 100"
+	echo "\t \tDone - /usr/bin/dscl sets to 100"
 fi
 
-printf "\t Disable Setuid and Setgid [y] "
+printf "\tDisable Setuid and Setgid [y/n] (y) ? "
 read uidgid
 if [ -z $uidgid ] || [ $uidgid == "y" ]
 then
@@ -247,18 +247,18 @@ then
 	do
 		chmod ug-s $u 2>/dev/null
 	done
-	echo "\t \t Done - Setuid and Setgid binaries disabled"
+	echo "\t \tDone - Setuid and Setgid binaries disabled"
 fi
 
-printf "\t Flush Directory Service cache [y] "
+printf "\tFlush Directory Service cache [y/n] (y) ? "
 read dscache
 if [ -z $dscache ] || [ $dscache == "y" ]
 then
 	dscacheutil -flushcache
-	echo "\t \t Done - Entire cache flushed"
+	echo "\t \tDone - Entire cache flushed"
 fi
 
-printf "\t Enable Timestamps in Bash History [y] "
+printf "\tEnable Timestamps in Bash History [y/n] (y) ? "
 read tmstamps
 if [ -z $tmstamps ] || [ $tmstamps == "y" ]
 then
@@ -273,12 +273,12 @@ then
 	else
 		echo 'export HISTTIMEFORMAT="[%m.%d.%y]@[%T] "' >> /Users/$inuser/.profile
 	fi
-	echo "\t \t Done - HISTTIMEFORMAT variable set in /Users/$inuser/.profile"
+	echo "\t \tDone - HISTTIMEFORMAT variable set in /Users/$inuser/.profile"
 fi 
 
 echo "\n[[Applications]"
 
-printf "\t Disable iSight camera [y] "
+printf "\tDisable iSight camera [y/n] (y) ? "
 read isight
 if [ -z $isight ] || [ $isight == "y" ]
 then
@@ -291,14 +291,14 @@ then
 	do
         	/bin/chmod a-r $d 2>/dev/null    
 	done
-	echo "\t \t Done - iSight camera disabled"
+	echo "\t \tDone - iSight camera disabled"
 fi
 
 echo "\n[[System Utilities]]"
 
 if [ "$(srm 2>&1 | grep "command not found")" ]
 then
-	printf "\t Install Secure Remove (srm) and make alias to rm [y] "
+	printf "\tInstall Secure Remove (srm) and make alias to rm [y/n] (y) ? "
 	read secrm
 	if [ -z $secrm ] || [ $secrm == "y" ]
 	then
@@ -306,31 +306,31 @@ then
 		then
 			port install srm
 			alias rm=srm	
-			echo "\t \t Done - srm installed and rm alias to srm created"
+			echo "\t \tDone - srm installed and rm alias to srm created"
 		else
-			echo "\t \t MacPorts must be installed"
+			echo "\t \tMacPorts must be installed"
 		fi
 	fi
 else
-	printf "\t Secure Remove (srm) is installed. Make alias to rm [y] "
+	printf "\tSecure Remove (srm) is installed. Make alias to rm [y/n] (y) ? "
 	read secrm
         if [ -z $secrm ] || [ $secrm == "y" ]
 	then
 		alias rm=srm
-                echo "\t \t Done - rm alias to srm"	
+                echo "\t \tDone - rm alias to srm"	
 	fi
 fi
 
-printf "\t Enable Finder secure remove [y] "
+printf "\tEnable Finder secure remove [y/n] (y) ? "
 read findsrm
 if [ -z $findsrm ] || [ $findsrm == "y" ]
 then
 	defaults write com.apple.finder EmptyTrashSecurely -bool true
 	killall Finder
-	echo "\t \t Done - EmptyTrashSecurely on com.apple.finder sets to true"
+	echo "\t \tDone - EmptyTrashSecurely on com.apple.finder sets to true"
 fi
 
-printf "\t Update Backup Time Machine Intervals [y] "
+printf "\tUpdate Backup Time Machine Intervals [y/n] (y) ? "
 read bktm
 if [ -z $bktm ] || [ $bktm == "y" ]
 then
@@ -339,15 +339,15 @@ then
 		cp conf/com.apple.backupd-auto.plist /System/Library/LaunchDaemons/
 		chown root:wheel /System/Library/LaunchDaemons/com.apple.backupd-auto.plist
 		launchctl load -w /System/Library/LaunchDaemons/com.apple.backupd-auto.plist > /dev/null 2>&1
-		echo "\t \t Done - Updated StartInterval to 3600 on Daemon com.apple.backupd-auto"	
+		echo "\t \tDone - Updated StartInterval to 3600 on Daemon com.apple.backupd-auto"	
 		launchctl start com.apple.backupd-auto
-		echo "\t \t Done - Daemon com.apple.backupd-auto started"
+		echo "\t \tDone - Daemon com.apple.backupd-auto started"
 	fi
 fi
 
 echo "\n[[Network Services]]"
 
-printf "\t Disable Unnecessary Services [y] "
+printf "\tDisable Unnecessary Services [y/n] (y) ? "
 read services
 if [ -z $services ] || [ $services == "y" ]
 then
@@ -377,18 +377,18 @@ then
 	do
 		launchctl unload -w /System/Library/LaunchAgents/$a.plist 1>&2 2>/dev/null
 	done
-	echo "\t \t Done - Unnecessary Services disabled"
+	echo "\t \tDone - Unnecessary Services disabled"
 fi
 
-printf "\t Disabling Remote Desktop [y] "
+printf "\tDisabling Remote Desktop [y/n] (y) ? "
 read remotedesk
 if [ -z $remotedesk ] || [ $remotedesk == "y" ] 
 then
 	/System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -stop 2>/dev/null
-	echo "\t \t Done - Remote Desktop disabled"
+	echo "\t \tDone - Remote Desktop disabled"
 fi
 
-printf "\t Change the global umask file permission [y] "
+printf "\tChange the global umask file permission [y/n] (y) ? "
 read umaskperm
 if [ -z $umaskperm ] || [ $umaskperm == "y" ]
 then
@@ -405,15 +405,15 @@ then
 		else
 			echo "umask 077" >> /etc/launchd.conf
 		fi
-		echo "\t \t Done - global umask file permission changed to 077"
+		echo "\t \tDone - global umask file permission changed to 077"
 	else
 		echo "umask 077" >> /etc/launchd.conf
-		echo "\t \t Done - global umask file permission changed to 077"
+		echo "\t \tDone - global umask file permission changed to 077"
 	fi
 fi
 
 echo "\n[[Manual Configuration]]"
-echo "\t FolderActions (AppleScript) on LaunchAgents and LaunchDaemons - add new item alert.scpt for overwrite protection"
+echo "\tFolderActions (AppleScript) on LaunchAgents and LaunchDaemons - add new item alert.scpt for overwrite protection"
 
 echo "\n--------------------------------"
 exit 0
