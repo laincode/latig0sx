@@ -414,9 +414,9 @@ fi
 
 echo "\n[[Check Data and Using Encryption]]" 
 
-printf "\tEnable OSCP Revocation to Best Attempt [y/n] (y) ? "
-read oscp
-if [ -z $oscp ] || [ $oscp == "y" ]
+printf "\tEnable OCSP Revocation to Best Attempt [y/n] (y) ? "
+read ocsp
+if [ -z $ocsp ] || [ $ocsp == "y" ]
 then
 	defaults write com.apple.security.revocation OCSPStyle -string BestAttempt
 	echo "\t \tDone - Setting OCSPStyle com.apple.security.revocation to BestAttempt"

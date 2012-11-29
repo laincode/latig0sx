@@ -1110,7 +1110,7 @@ done
 
 if [ -f /etc/launchd.conf ]
 then
-echo "\t[Checking the global umask file permission...]"
+echo "\t[Checking the global umask file permission]"
 	if [ $(grep umask launchd.conf | awk '{ print $2 }') -eq 077 ]
 	then
 		"\t \t Umask file permission on /etc/launchd.conf is 077"
@@ -1119,7 +1119,7 @@ echo "\t[Checking the global umask file permission...]"
 	fi
 fi
 
-echo "[[Checking Protections]]"
+echo "\n[[Checking Protections]]"
 
 echo "\t[Checking DEP (Data Execution Prevention)]"
 if [ "$(sysctl kern.nx | awk ' { print $2 }' )" -eq 1 ]
@@ -1148,6 +1148,37 @@ do
                 fi
         fi
 done
+
+echo "\n[[Check Data and Using Encryption]]"
+
+echo "\t[Checking OCSP Revocation to Best Attempt]"
+ocsp=$(defaults read com.apple.security.revocation OCSPStyle 2>&1)
+if [ "$(echo $ocsp | awk '/does not exist/')" ]
+then
+        echo "\t \t Security Revocation not installed"
+else
+        if [ $ocsp == "BestAttempt" ]
+        then
+                echo "\t \t OCSP Revocation to Best Attemp enabled"
+        else
+                echo "\t \t OCSP Revocation to Best Attemp disabled"
+        fi
+fi 
+
+echo "\t[Checking CRL Revocation to Best Attempt]"
+crl=$(defaults read com.apple.security.revocation CRLStyle 2>&1)
+if [ "$(echo $crk | awk '/does not exist/')" ]
+then
+        echo "\t \t Security Revocation not installed"
+else
+        if [ $crl == "BestAttempt" ]
+        then
+                echo "\t \t CRL Revocation to Best Attemp enabled"
+        else
+                echo "\t \t CRL Revocation to Best Attemp disabled"
+        fi
+fi 
+
 
 
 exit 0
