@@ -380,7 +380,7 @@ then
 	echo "\t \tDone - Unnecessary Services disabled"
 fi
 
-printf "\tDisabling Remote Desktop [y/n] (y) ? "
+printf "\tDisable Remote Desktop [y/n] (y) ? "
 read remotedesk
 if [ -z $remotedesk ] || [ $remotedesk == "y" ] 
 then
@@ -410,6 +410,25 @@ then
 		echo "umask 077" >> /etc/launchd.conf
 		echo "\t \tDone - global umask file permission changed to 077"
 	fi
+fi
+
+echo "\n[[Check Data and Using Encryption]]" 
+
+printf "\tEnable OSCP Revocation to Best Attempt [y/n] (y) ? "
+read oscp
+if [ -z $oscp ] || [ $oscp == "y" ]
+then
+	defaults write com.apple.security.revocation OCSPStyle -string BestAttempt
+	echo "\t \tDone - Setting OCSPStyle com.apple.security.revocation to BestAttempt"
+        echo "\t \tDon't forget setting Priority to OCSP on Keychain Access > Preferences > Certificates tab"
+fi
+
+printf "\tEnable CRL Revocation to Best Attempt [y/n] (y) ? "
+read crl
+if [ -z $crl ] || [ $crl == "y" ]
+then
+	defaults write com.apple.security.revocation CRLStyle -string BestAttempt
+        echo "\t \tDone - Setting CRLStyle com.apple.security.revocation to BestAttempt"
 fi
 
 echo "\n[[Manual Configuration]]"
