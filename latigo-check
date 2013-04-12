@@ -63,19 +63,19 @@ echo "\t \t OSrelease: $(uname -a | awk '{ print $3}')"
 echo "\t \t Secure Level: $(sysctl -a | grep kern.securelevel: | awk '{ print $2}')"
 
 # Checking Software Updates
-echo "\t [Checking Software Updates]"
-softwareUpdate=$(softwareupdate -l 2>&1)
-if [ "$(echo $softwareUpdate | awk '/available./')" ] 
-then
-	echo "\t \t Up to date"
-else 
-	if [ "$(echo $softwareUpdate | awk '/offline./')" ]
-	then
-		echo "\t \t The Internet connection appears to be offline"
-	else 
-		printf "\t \t Software Available: $softwareUpdate\n"
-	fi
-fi
+#echo "\t [Checking Software Updates]"
+#softwareUpdate=$(softwareupdate -l 2>&1)
+#if [ "$(echo $softwareUpdate | awk '/available./')" ] 
+#then
+#	echo "\t \t Up to date"
+#else 
+#	if [ "$(echo $softwareUpdate | awk '/offline./')" ]
+#	then
+#		echo "\t \t The Internet connection appears to be offline"
+#	else 
+#		printf "\t \t Software Available: $softwareUpdate\n"
+#	fi
+#fi
 
 # Checking Download Important Updates Automatically Disabled
 echo "\t [Checking Download Updates Automatically Disabled]"
@@ -168,6 +168,14 @@ for u in $users
 do
 	blimit=$(quota -v $u | grep / | awk '{ print $4 }')
 	inodelimit=$(quota -v $u | grep / | awk '{ print $7 }')  
+        if [ -z $blimit ]
+        then
+        	blimit=0
+        fi
+        if [ -z $inodelimit ]
+        then
+                inodelimit=0
+        fi
 	echo "\t \t User: $u - Block limit: $blimit - File limit: $inodelimit"
 	if [ $blimit -eq 0 ] && [ $inodelimit -eq 0 ]
 	then
@@ -939,10 +947,15 @@ done
 
 # Checking Timestamps in Bash History
 echo "\t[Checking Timestamps in Bash History]"
-tmstamps=$(grep "^export HISTTIMEFORMAT" /Users/$inuser/.profile)
-if [ "$(echo $tmstamps)" ]
+if [ -f /Users/$inuser/.profile ]
 then
-	echo "\t \t Timestamps $tmstamps enabled in /Users/$inuser/.profile"
+	tmstamps=$(grep "^export HISTTIMEFORMAT" /Users/$inuser/.profile)
+	if [ "$(echo $tmstamps)" ]
+	then
+		echo "\t \t Timestamps $tmstamps enabled in /Users/$inuser/.profile"
+	else
+		echo "\t \t Timestamps in bash history not enabled"
+	fi
 else
 	echo "\t \t Timestamps in bash history not enabled"
 fi
