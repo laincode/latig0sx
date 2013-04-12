@@ -61,7 +61,7 @@ then
 	read secoption
 	if [ -n $secoption ] && [ $secoption == "0" ]
 	then
-		sysctl -w kern.securelevel=1 | 2>&1 | 1>/dev/null
+		sysctl -w kern.securelevel=0 | 2>&1 | 1>/dev/null
 		echo "\t \tDone - kern.securelevel set to $secoption"
 	fi
 	if [ -z $secoption ] || [ $secoption == "1" ]
