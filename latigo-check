@@ -404,7 +404,7 @@ else
 fi	
 
 # Disable music CD automatic action 
-cdPrefMusic=$(defaults read /Users/$inuser/Library/Preferences/com.apple.digihub com.apple.digihub.cd.music.appeared action 2>1&)
+cdPrefMusic=$(defaults read /Users/$inuser/Library/Preferences/com.apple.digihub com.apple.digihub.cd.music.appeared action 2>&1)
 if [ "$(echo $cdPrefMusic | awk '/does not exist/')" ]
 then
 	echo "\t \t Music CD automatic action not defined"
@@ -418,7 +418,7 @@ else
 fi	
 
 # Disable picture CD automatic action
-cdPrefPicure=$(defaults read /Users/$inuser/Library/Preferences/com.apple.digihub com.apple.digihub.cd.picture.appeared action 2>1&)
+cdPrefPicure=$(defaults read /Users/$inuser/Library/Preferences/com.apple.digihub com.apple.digihub.cd.picture.appeared action 2>&1)
 if [ "$(echo $cdPrefPicture | awk '/does not exist/')" ]
 then
 	echo "\t \t Picture CD automatic action not defined"
