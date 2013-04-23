@@ -633,9 +633,10 @@ else
 	echo "\t \t Receiving faxes job unloaded"
 fi
 
-# Checking printer sharing disabled  
-if grep "Port 631" /etc/cups/cupsd.conf
-then
+# Checking printer sharing disabled
+cupsjob=$(launchctl list | grep cups)
+if [ "$(echo $cupsjob)" ]
+then  
 	echo "\t \t Printer Sharing enabled"
 else 
 	echo "\t \t Printer Sharing disabled" 

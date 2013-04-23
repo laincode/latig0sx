@@ -388,6 +388,14 @@ then
 	echo "\t \tDone - Remote Desktop disabled"
 fi
 
+printf "\tDisable CUPS (Printer Sharing) [y/n] (y) ? "
+read cups
+if [ -z $cups ] || [ $cups == "y" ]
+then
+	launchctl unload -w /System/Library/LaunchDaemons/org.cups.cupsd.plist 1>&2 2>/dev/null
+        echo "\t \tDone - CUPS disabled"
+fi
+
 printf "\tChange the global umask file permission [y/n] (y) ? "
 read umaskperm
 if [ -z $umaskperm ] || [ $umaskperm == "y" ]
