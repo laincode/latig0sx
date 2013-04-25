@@ -62,22 +62,22 @@ then
 	if [ -n $secoption ] && [ $secoption == "0" ]
 	then
 		sysctl -w kern.securelevel=0 | 2>&1 | 1>/dev/null
-		echo "\t \tDone - kern.securelevel set to $secoption"
+		echo "\t \t\033[00;32mDone\033[0m - kern.securelevel set to $secoption"
 	fi
 	if [ -z $secoption ] || [ $secoption == "1" ]
         then
                 sysctl -w kern.securelevel=1 | 2>&1 | 1>/dev/null
-                echo "\t \tDone - kern.securelevel set to $secoption"
+                echo "\t \t\033[00;32mDone\033[0m - kern.securelevel set to $secoption"
         fi
 	if [ -n $secoption ] && [ $secoption == "2" ]
         then
                 sysctl -w kern.securelevel=2 | 2>&1 | 1>/dev/null
-                echo "\t \tDone - kern.securelevel set to $secoption"
+                echo "\t \t\033[00;32mDone\033[0m - kern.securelevel set to $secoption"
         fi
         if [ -n $secoption ] && [ $secoption == "3" ]
         then
                 sysctl -w kern.securelevel=3 | 2>&1 | 1>/dev/null
-                echo "\t \tDone - kern.securelevel set to $secoption"
+                echo "\t \t\033[00;32mDone\033[0m - kern.securelevel set to $secoption"
         fi
 fi
 
@@ -90,9 +90,9 @@ then
 		cp conf/com.softwareupdate.plist /System/Library/LaunchDaemons/
 		chown root:wheel /System/Library/LaunchDaemons/com.softwareupdate.plist
 		launchctl load -w /System/Library/LaunchDaemons/com.softwareupdate.plist > /dev/null 2>&1
-		echo "\t \tDone - com.softwareupdate.plist daemon loaded" 
+		echo "\t \t\033[00;32mDone\033[0m - com.softwareupdate.plist daemon loaded" 
 		launchctl start com.softwareupdate
-		echo "\t \tDone - com.softwareupdate.plist daemon started"
+		echo "\t \t\033[00;32mDone\033[0m - com.softwareupdate.plist daemon started"
 	fi
 fi
 
@@ -106,7 +106,7 @@ then
 	touch /.quota.ops.group
 	quotaon -a
 	edquota $inuser
-	echo "\t \tDone - Disk Quotas enabled"
+	echo "\t \t\033[00;32mDone\033[0m - Disk Quotas enabled"
 fi
 
 echo "\n[[Global System Settings]]"
@@ -117,7 +117,7 @@ if [ -z $nvram ] || [ $nvram == "y" ]
 then
 	#full -> All commands except go require the security-password
 	nvram security-mode="full"
-	echo "\t \tDone - NVRAM security-mode is set to full" 
+	echo "\t \t\033[00;32mDone\033[0m - NVRAM security-mode is set to full" 
 fi
 
 printf "\tEnable Security Auditing [y/n] (y) ? "
@@ -135,11 +135,11 @@ then
 	else
 		echo AUDIT=-YES- >> /etc/hostconfig
 	fi
-	echo "\t \tDone - AUDIT=-YES in /etc/hostconfig"
+	echo "\t \t\033[00;32mDone\033[0m - AUDIT=-YES in /etc/hostconfig"
 	launchctl load -w /System/Library/LaunchDaemons/com.apple.auditd.plist > /dev/null 2>&1
-	echo "\t \tDone - com.apple.auditd loaded"
+	echo "\t \t\033[00;32mDone\033[0m - com.apple.auditd loaded"
 	launchctl start com.apple.auditd
-	echo "\t \tDone - com.apple.auditd started"
+	echo "\t \t\033[00;32mDone\033[0m - com.apple.auditd started"
 fi
 
 echo "\n[[System Preferences]]"
@@ -153,7 +153,7 @@ then
 	do
 		networksetup -setv6off "$i"
 	done
-	echo "\t \tDone - IPv6 Network interfaces set off"
+	echo "\t \t\033[00;32mDone\033[0m - IPv6 Network interfaces set off"
 fi
 
 printf "\tDisable Bluetooth Controller [y/n] (y) ? "
@@ -161,7 +161,7 @@ read blcontr
 if [ -z $blcontr ] || [ $blcontr == "y" ]
 then
 	defaults write /Library/Preferences/com.apple.Bluetooth/ControllerPowerState -int 0 2>/dev/null
-	echo "\t \tDone - Bluetooth Controller disabled"
+	echo "\t \t\033[00;32mDone\033[0m - Bluetooth Controller disabled"
 fi
 
 printf "\tDisable IR remote control [y/n] (y) ? "
@@ -169,7 +169,7 @@ read irremcontr
 if [ -z $irremcontr ] || [ $irremcontr == "y" ]
 then
 	defaults write /Library/Preferences/com.apple.driver.AppleIRController DeviceEnabled -bool no
-	echo "\t \tDone - IR remote control disabled"
+	echo "\t \t\033[00;32mDone\033[0m - IR remote control disabled"
 fi
 
 printf "\tDisable internal microphone or line-in [y/n] (y) ? "
@@ -177,7 +177,7 @@ read microph
 if [ -z $microph ] || [ $microph == "y" ]
 then
 	osascript -e "set volume input volume 0"
-	echo "\t \tDone - internal microphone disabled"
+	echo "\t \t\033[00;32mDone\033[0m - internal microphone disabled"
 fi
 
 printf "\tEnable Application Firewall Logging [y/n] (y) ? "
@@ -185,7 +185,7 @@ read apfwlog
 if [ -z $apfwlog ] || [ $apfwlog == "y" ]
 then
 	defaults write /Library/Preferences/com.apple.alf loggingenabled 1
-	echo "\t \tDone - Application firewall logging enabled"
+	echo "\t \t\033[00;32mDone\033[0m - Application firewall logging enabled"
 fi
 
 printf "\tEnable Firewall (IPFW) Logging [y/n] (y) ? "
@@ -193,7 +193,7 @@ read fwlog
 if [ -z $fwlog ] || [ $fwlog == "y" ]
 then
 	sysctl -w net.inet.ip.fw.verbose=2 | 2>&1 | 1>/dev/null
-	echo "\t \tDone - IPFW logging enabled"
+	echo "\t \t\033[00;32mDone\033[0m - IPFW logging enabled"
 fi
 
 echo "\n[[Accounts Preferences]]"
@@ -203,7 +203,7 @@ read disroot
 if [ -z $disroot ] || [ $disroot == "y" ]
 then 
 	dsenableroot -d
-	echo "\t \tDone - root account disabled"
+	echo "\t \t\033[00;32mDone\033[0m - root account disabled"
 fi
 
 printf "\tSecure User's Home Folder Permissions [y/n] (y) ? "
@@ -211,7 +211,7 @@ read usrfoldperm
 if [ -z $usrfoldperm ] || [ $usrfoldperm == "y" ]
 then
 	chmod go-rx /Users/$inuser/
-	echo "\t \tDone - $inuser home folder permissions set to go-rx"
+	echo "\t \t\033[00;32mDone\033[0m - $inuser home folder permissions set to go-rx"
 fi
 
 printf "\tSecure /usr/bin/dscl [y/n] (y) ? "
@@ -219,7 +219,7 @@ read secdscl
 if [ -z $secdscl ] || [ $secdscl == "y" ]
 then
 	chmod 100 /usr/bin/dscl
-	echo "\t \tDone - /usr/bin/dscl sets to 100"
+	echo "\t \t\033[00;32mDone\033[0m - /usr/bin/dscl sets to 100"
 fi
 
 printf "\tDisable Setuid and Setgid [y/n] (y) ? "
@@ -252,7 +252,7 @@ then
 	do
 		chmod ug-s $u 2>/dev/null
 	done
-	echo "\t \tDone - Setuid and Setgid binaries disabled"
+	echo "\t \t\033[00;32mDone\033[0m - Setuid and Setgid binaries disabled"
 fi
 
 printf "\tFlush Directory Service cache [y/n] (y) ? "
@@ -260,7 +260,7 @@ read dscache
 if [ -z $dscache ] || [ $dscache == "y" ]
 then
 	dscacheutil -flushcache
-	echo "\t \tDone - Entire cache flushed"
+	echo "\t \t\033[00;32mDone\033[0m - Entire cache flushed"
 fi
 
 printf "\tEnable Timestamps in Bash History [y/n] (y) ? "
@@ -278,7 +278,7 @@ then
 	else
 		echo 'export HISTTIMEFORMAT="[%m.%d.%y]@[%T] "' >> /Users/$inuser/.profile
 	fi
-	echo "\t \tDone - HISTTIMEFORMAT variable set in /Users/$inuser/.profile"
+	echo "\t \t\033[00;32mDone\033[0m - HISTTIMEFORMAT variable set in /Users/$inuser/.profile"
 fi 
 
 echo "\n[[Applications]"
@@ -296,7 +296,7 @@ then
 	do
         	/bin/chmod a-r $d 2>/dev/null    
 	done
-	echo "\t \tDone - iSight camera disabled"
+	echo "\t \t\033[00;32mDone\033[0m - iSight camera disabled"
 fi
 
 echo "\n[[System Utilities]]"
@@ -311,7 +311,7 @@ then
 		then
 			port install srm
 			alias rm=srm	
-			echo "\t \tDone - srm installed and rm alias to srm created"
+			echo "\t \t\033[00;32mDone\033[0m - srm installed and rm alias to srm created"
 		else
 			echo "\t \tMacPorts must be installed"
 		fi
@@ -322,7 +322,7 @@ else
         if [ -z $secrm ] || [ $secrm == "y" ]
 	then
 		alias rm=srm
-                echo "\t \tDone - rm alias to srm"	
+                echo "\t \t\033[00;32mDone\033[0m - rm alias to srm"	
 	fi
 fi
 
@@ -332,7 +332,7 @@ if [ -z $findsrm ] || [ $findsrm == "y" ]
 then
 	defaults write com.apple.finder EmptyTrashSecurely -bool true
 	killall Finder
-	echo "\t \tDone - EmptyTrashSecurely on com.apple.finder sets to true"
+	echo "\t \t\033[00;32mDone\033[0m - EmptyTrashSecurely on com.apple.finder sets to true"
 fi
 
 printf "\tUpdate Backup Time Machine Intervals [y/n] (y) ? "
@@ -344,9 +344,9 @@ then
 		cp conf/com.apple.backupd-auto.plist /System/Library/LaunchDaemons/
 		chown root:wheel /System/Library/LaunchDaemons/com.apple.backupd-auto.plist
 		launchctl load -w /System/Library/LaunchDaemons/com.apple.backupd-auto.plist > /dev/null 2>&1
-		echo "\t \tDone - Updated StartInterval to 3600 on Daemon com.apple.backupd-auto"	
+		echo "\t \t\033[00;32mDone\033[0m - Updated StartInterval to 3600 on Daemon com.apple.backupd-auto"	
 		launchctl start com.apple.backupd-auto
-		echo "\t \tDone - Daemon com.apple.backupd-auto started"
+		echo "\t \t\033[00;32mDone\033[0m - Daemon com.apple.backupd-auto started"
 	fi
 fi
 
@@ -382,7 +382,7 @@ then
 	do
 		launchctl unload -w /System/Library/LaunchAgents/$a.plist 1>&2 2>/dev/null
 	done
-	echo "\t \tDone - Unnecessary Services disabled"
+	echo "\t \t\033[00;32mDone\033[0m - Unnecessary Services disabled"
 fi
 
 printf "\tDisable Remote Desktop [y/n] (y) ? "
@@ -390,7 +390,7 @@ read remotedesk
 if [ -z $remotedesk ] || [ $remotedesk == "y" ] 
 then
 	/System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -stop 2>/dev/null
-	echo "\t \tDone - Remote Desktop disabled"
+	echo "\t \t\033[00;32mDone\033[0m - Remote Desktop disabled"
 fi
 
 printf "\tDisable CUPS (Printer Sharing) [y/n] (y) ? "
@@ -398,7 +398,7 @@ read cups
 if [ -z $cups ] || [ $cups == "y" ]
 then
 	launchctl unload -w /System/Library/LaunchDaemons/org.cups.cupsd.plist 1>&2 2>/dev/null
-        echo "\t \tDone - CUPS disabled"
+        echo "\t \t\033[00;32mDone\033[0m - CUPS disabled"
 fi
 
 printf "\tChange the global umask file permission [y/n] (y) ? "
@@ -418,10 +418,10 @@ then
 		else
 			echo "umask 077" >> /etc/launchd.conf
 		fi
-		echo "\t \tDone - global umask file permission changed to 077"
+		echo "\t \t\033[00;32mDone\033[0m - global umask file permission changed to 077"
 	else
 		echo "umask 077" >> /etc/launchd.conf
-		echo "\t \tDone - global umask file permission changed to 077"
+		echo "\t \t\033[00;32mDone\033[0m - global umask file permission changed to 077"
 	fi
 fi
 
@@ -432,7 +432,7 @@ read ocsp
 if [ -z $ocsp ] || [ $ocsp == "y" ]
 then
 	defaults write com.apple.security.revocation OCSPStyle -string BestAttempt
-	echo "\t \tDone - Setting OCSPStyle com.apple.security.revocation to BestAttempt"
+	echo "\t \t\033[00;32mDone\033[0m - Setting OCSPStyle com.apple.security.revocation to BestAttempt"
         echo "\t \tDon't forget setting Priority to OCSP on Keychain Access > Preferences > Certificates tab"
 fi
 
@@ -441,7 +441,7 @@ read crl
 if [ -z $crl ] || [ $crl == "y" ]
 then
 	defaults write com.apple.security.revocation CRLStyle -string BestAttempt
-        echo "\t \tDone - Setting CRLStyle com.apple.security.revocation to BestAttempt"
+        echo "\t \t\033[00;32mDone\033[0m - Setting CRLStyle com.apple.security.revocation to BestAttempt"
 fi
 
 echo "\n[[Manual Configuration]]"
