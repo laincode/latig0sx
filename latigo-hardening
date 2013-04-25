@@ -57,7 +57,7 @@ printf "\tSet Kern Secure Level [y/n] (y) ? "
 read kernsec
 if [ -z $kernsec ] || [ $kernsec == "y" ] 
 then  
-	printf "\t \tLevel Options: 0 (Insecure) 1 (Secure) 2 (Highly secure) [0/1/2] (1) ? "  
+	printf "\t \tLevel Options: 0 (Insecure) 1 (Secure) 2 or 3 (Highly secure) [0/1/2/3] (1) ? "  
 	read secoption
 	if [ -n $secoption ] && [ $secoption == "0" ]
 	then
@@ -72,6 +72,11 @@ then
 	if [ -n $secoption ] && [ $secoption == "2" ]
         then
                 sysctl -w kern.securelevel=2 | 2>&1 | 1>/dev/null
+                echo "\t \tDone - kern.securelevel set to $secoption"
+        fi
+        if [ -n $secoption ] && [ $secoption == "3" ]
+        then
+                sysctl -w kern.securelevel=3 | 2>&1 | 1>/dev/null
                 echo "\t \tDone - kern.securelevel set to $secoption"
         fi
 fi
