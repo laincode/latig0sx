@@ -60,7 +60,13 @@ echo "\t \t OStype: $(uname -a | awk '{ print $1}')"
 echo "\t \t OSrelease: $(uname -a | awk '{ print $3}')"
 
 # Kernel Secure Level
-echo "\t \t Secure Level: $(sysctl -a | grep kern.securelevel: | awk '{ print $2}')"
+seclevel=$(sysctl -a | grep kern.securelevel: | awk '{ print $2}')
+if [ $seclevel -le 0 ]
+then
+	echo "\t \t Secure Level: $seclevel [ \033[00;31mWarning\033[0m ]"
+else
+	echo "\t \t Secure Level: $seclevel"
+fi
 
 # Checking Software Updates
 #echo "\t [Checking Software Updates]"
@@ -83,7 +89,7 @@ if [ "$(softwareupdate --schedule | grep "Automatic check is off")" ]
 then
 	echo "\t \t Automatic check is OFF"
 else
-	echo "\t \t Automatic check is ON"
+	echo "\t \t Automatic check is ON [ \033[00;31mWarning\033[0m ]"
 fi
 
 ## Checking System Hardware ##
@@ -93,7 +99,7 @@ echo "\n[[Checking System Hardware]]"
 echo "\t [Checking Apple AirPort kernel extensions]"
 if [ -d /System/Library/Extensions/IO80211Family.kext ]
 then
-	echo "\t \t Apple AirPort kernel extensions installed"
+	echo "\t \t Apple AirPort kernel extensions installed [ \033[00;31mWarning\033[0m ]"
 else 
 	echo "\t \t Apple AirPort kernel extensions not installed"
 fi
@@ -102,7 +108,7 @@ fi
 echo "\t [Checking Bluetooth kernel extensions]"
 if [ -d /System/Library/Extensions/IOBluetoothFamily.kext ] || [ -d /System/Library/Extensions/IOBluetoothHIDDriver.kext ] 
 then
-	echo "\t \t Bluetooth kernel extensions installed"
+	echo "\t \t Bluetooth kernel extensions installed [ \033[00;31mWarning\033[0m ]"
 else
 	echo "\t \t Bluetooth kernel extensions not installed"
 fi
@@ -111,7 +117,7 @@ fi
 echo "\t [Checking IR kernel extensions]"
 if [ -d  /System/Library/Extensions/AppleIRController.kext ]
 then
-	echo "\t \t IR kernel extensions installed"
+	echo "\t \t IR kernel extensions installed [ \033[00;31mWarning\033[0m ]"
 else
 	echo "\t \t IR kernel extensions not installed"
 fi
@@ -120,7 +126,7 @@ fi
 echo "\t [Checking Audio Recording kernel extensions]"
 if [ -d /System/Library/Extensions/AppleUSBAudio.kext ] 
 then
-	echo "\t \t Audio Recording kernel extensions installed"
+	echo "\t \t Audio Recording kernel extensions installed [ \033[00;31mWarning\033[0m ]"
 else
 	echo "\t \t Audio Recording kernel extensions not installed"
 fi
@@ -129,7 +135,7 @@ fi
 echo "\t [Checking External iSight camera]"
 if [ -d /System/Library/Extensions/Apple_iSight.kext ]
 then
-	echo "\t \t External iSight camera installed"
+	echo "\t \t External iSight camera installed [ \033[00;31mWarning\033[0m ]"
 else
 	echo "\t \t External iSight camera not installed"
 fi
@@ -138,7 +144,7 @@ fi
 echo "\t [Checking Internal iSight camera]"
 if [ -d /System/Library/Extensions/IOUSBFamily.kext/Contents/PlugIns/AppleUSBVideoSupport.kext ]
 then
-	echo "\t \t Internal iSight camera installed"
+	echo "\t \t Internal iSight camera installed [ \033[00;31mWarning\033[0m ]"
 else
 	echo "\t \t Internal iSight camera not installed"
 fi
@@ -147,7 +153,7 @@ fi
 echo "\t [Checking USB kernel extensions]"
 if [ -d /System/Library/Extensions/IOUSBMassStorageClass.kext ]
 then
-	echo "\t \t USB kernel extensions installed"
+	echo "\t \t USB kernel extensions installed [ \033[00;31mWarning\033[0m ]"
 else
 	echo "\t \t USB kernel extensions not installed"
 fi
@@ -156,7 +162,7 @@ fi
 echo "\t [Checking FireWire kernel extensions]"
 if [ -d /System/Library/Extensions/IOFireWireSerialBusProtocolTransport.kext ]
 then
-	echo "\t \t FireWire kernel extensions installed"
+	echo "\t \t FireWire kernel extensions installed [ \033[00;31mWarning\033[0m ]"
 else
 	echo "\t \t FireWire kernel extensions not installed"
 fi
@@ -179,15 +185,15 @@ do
 	echo "\t \t User: $u - Block limit: $blimit - File limit: $inodelimit"
 	if [ $blimit -eq 0 ] && [ $inodelimit -eq 0 ]
 	then
-		echo "\t \t Must set disk quota for user $u"
+		echo "\t \t Must set disk quota for user $u [ \033[00;31mWarning\033[0m ]"
 	fi
 	if [ $blimit -eq 0 ] && [ $inodelimit -ne 0 ]
         then
-                echo "\t \t Must set Block limit for user $u"
+                echo "\t \t Must set Block limit for user $u [ \033[00;31mWarning\033[0m ]"
         fi 
         if [ $blimit -ne 0 ] && [ $inodelimit -eq 0 ]
         then
-                echo "\t \t Must set File limit for user $u"
+                echo "\t \t Must set File limit for user $u [ \033[00;31mWarning\033[0m ]"
         fi
 done
 
@@ -202,7 +208,7 @@ if [ "$(echo $secureMode | awk '/security-mode/')" ]
 then
 	echo "\t \t Secure Mode: $(nvram -x security-mode | awk '{ print $2}')"
 else
-	echo "\t \t No Secure Mode setting"
+	echo "\t \t No Secure Mode setting [ \033[00;31mWarning\033[0m ]"
 fi
 
 # Checking if there is a login window access warning
@@ -213,14 +219,14 @@ then
 	then
 		echo "\t \t Login Window access warning defined"
 	else 
-		echo "\t \t No Login Window access warning defined"
+		echo "\t \t No Login Window access warning defined [ \033[00;31mWarning\033[0m ]"
 	fi
 else
 	if [ -f /etc/motd ] 
 	then
 		echo "\t \t Login Window access warning defined: $(cat /etc/motd)" 
 	else
-		echo "\t \t No Login Window access warning defined"
+		echo "\t \t No Login Window access warning defined [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -234,7 +240,7 @@ then
 	then
 		echo "\t \t /etc/motd has correct permissions"
 	else
-		echo "\t \t /etc/motd doesnt have correct permissions"
+		echo "\t \t /etc/motd doesnt have correct permissions [ \033[00;31mWarning\033[0m ]"
 	fi
 #else
 #	echo "\t \t /etc/motd doesnt exist"
@@ -246,7 +252,7 @@ if [ "$(grep "AUDIT=-YES-" /etc/hostconfig)" ]
 then
 	echo "\t \t Audit in /etc/hostconfig is enabled"
 else
-	echo "\t \t Audit in /etc/hostconfig is disabled"
+	echo "\t \t Audit in /etc/hostconfig is disabled [ \033[00;31mWarning\033[0m ]"
 fi
 
 secaudit=$(launchctl list | grep com.apple.auditd)
@@ -254,12 +260,12 @@ if [ "$(echo $secaudit)" ]
 then
         if [ "$(echo $secaudit | awk ' { print $1 } ')" == "-" ]
         then 
-                echo "\t \t Security Audit daemon loaded but not running"
+                echo "\t \t Security Audit daemon loaded but not running [ \033[00;31mWarning\033[0m ]"
         else
                 echo "\t \t Security Audit daemon is running"
         fi
 else
-        echo "\t \t Security Audit daemon unloaded"
+        echo "\t \t Security Audit daemon unloaded [ \033[00;31mWarning\033[0m ]"
 fi
 
 ## Checking System Preferences ##
@@ -273,11 +279,11 @@ if [ "$(echo $syncopts | awk '/does not exist/')" ]
 then
         echo "\t \t Sync options not installed"
 else
-	if [ $syncopts eq -1 ]
+	if [ $syncopts -eq -1 ]
         then
 		echo "\t \t Sync options disabled"
 	else
-		echo "\t \t Sync options enabled"
+		echo "\t \t Sync options enabled [ \033[00;31mWarning\033[0m ]"
 		#Checking Disable iDisk Syncing
                 echo "\t \t [Checking Disable iDisk Syncing]"
                 echo "\t \t Enter your MobileMe user name:"
@@ -289,7 +295,7 @@ else
 		else
 			if [ $syncopts == "YES" ]
 			then 
-				echo "\t \t iDisk Syncing enabled"
+				echo "\t \t iDisk Syncing enabled [ \033[00;31mWarning\033[0m ]"
 			else
 				echo "\t \t iDisk Syncing disabled"
 			fi
@@ -310,7 +316,7 @@ else
 	then
 		echo "\t \t No password hint set"
 	else
-		echo "\t \t Password hint set"
+		echo "\t \t Password hint set [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
  
@@ -324,7 +330,7 @@ else
 	then
 		echo "\t \t Login options display name and password in the login window"
 	else
-		echo "\t \t Login options dont display name and password in the login window"
+		echo "\t \t Login options dont display name and password in the login window [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -336,9 +342,9 @@ then
 else
 	if [ $buttons -eq 1 ]
 	then
-		echo "\t \t Show Restart, Sleep and ShutDown Buttons disabled" 
+		echo "\t \t Show Restart, Sleep and ShutDown Buttons enabled [ \033[00;31mWarning\033[0m ]" 
 	else
-		echo "\t \t Show Restart, Sleep and ShutDown Buttons not disabled"
+		echo "\t \t Show Restart, Sleep and ShutDown Buttons disabled"
 	fi
 fi
  
@@ -352,7 +358,7 @@ else
 	then
 		echo "\t \t Fast User Switching disabled"
 	else
-		echo "\t \t Fast User Switching enabled"
+		echo "\t \t Fast User Switching enabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 # -bool NO
@@ -367,7 +373,7 @@ else
 	then
 		echo "\t \t MaxAmount applications is OK "
 	else
-		echo "\t \t MaxAmount applications must be distinct 0"
+		echo "\t \t MaxAmount applications must be distinct 0 [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 # MaxAmount 0,5,10,15,20,30,50
@@ -382,7 +388,7 @@ else
 	then
 		echo "\t \t Bluetooth is disabled"
 	else
-		echo "\t \t Bluetooth is enabled"
+		echo "\t \t Bluetooth is enabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -399,7 +405,7 @@ else
 	then
 		echo "\t \t Blank CD automatic action disabled"
 	else
-		echo "\t \t Blank CD automatic action enabled" 
+		echo "\t \t Blank CD automatic action enabled [ \033[00;31mWarning\033[0m ]" 
 	fi
 fi	
 
@@ -413,7 +419,7 @@ else
 	then
 		echo "\t \t Music CD automatic action disabled"
 	else
-		echo "\t \t Music CD automatic action enabled"
+		echo "\t \t Music CD automatic action enabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi	
 
@@ -427,7 +433,7 @@ else
 	then
         	echo "\t \t Picture CD automatic action disabled"
 	else
-        	echo "\t \t Picture CD automatic action enabled"
+        	echo "\t \t Picture CD automatic action enabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -440,7 +446,7 @@ then
 	then
         	echo "\t \t Blank DVD automatic action disabled"
 	else
-        	echo "\t \t Blank DVD automatic action enabled"
+        	echo "\t \t Blank DVD automatic action enabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -453,7 +459,7 @@ then
 	then 
         	echo "\t \t Video DVD automatic action disabled"
 	else
-        	echo "\t \t Video DVD automatic action enabled"
+        	echo "\t \t Video DVD automatic action enabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -480,10 +486,10 @@ then
 	then
 		echo "\t \t Date & Time Preferences defined correctly: $(cat /etc/ntp.conf)"
 	else
-		echo "\t \t Date & Time Preferences wrong defined"
+		echo "\t \t Date & Time Preferences wrong defined [ \033[00;31mWarning\033[0m ]"
 	fi
 else
-	echo "\t \t No Date & Time Preferences defined"
+	echo "\t \t No Date & Time Preferences defined [ \033[00;31mWarning\033[0m ]"
 fi 
 
 # Checking the date and time zone
@@ -496,7 +502,7 @@ echo "\t [Checking Desktop & Screen Saver Preferences]"
 idleTimeScreenSaver=$(defaults read /Users/$inuser/Library/Preferences/com.apple.screensaver idleTime 2>&1)
 if [ "$(echo $idleTimeScreenSaver | awk '/does not exist/')" ]
 then
-	echo "\t \t Idle time for screen saver not setting"
+	echo "\t \t Idle time for screen saver not setting [ \033[00;31mWarning\033[0m ]"
 else
 	echo "\t \t Idle time for screen saver setting"
 fi
@@ -511,7 +517,7 @@ else
     	then
         	echo "\t \t Host corner to activate screen saver setting and value 5"
     	else
-        	echo "\t \t Host corner to activate screen saver setting but not value 5"
+        	echo "\t \t Host corner to activate screen saver setting but not value 5[ \033[00;31mWarning\033[0m ]"
     	fi
 fi
 
@@ -519,13 +525,13 @@ fi
 modifierKey=$(defaults read /Users/$inuser/Library/Preferences/com.apple.dock wvous-corner_code-corner 2>&1)
 if [ "$(echo $modifierKey | awk '/does not exist/')" ]
 then 
-	echo "\t \t Modifier key to 0 wvous-corner_code-modifier not setting"
+	echo "\t \t Modifier key to 0 wvous-corner_code-modifier not setting [ \033[00;31mWarning\033[0m ]"
 else
     	if [ $modifierKey -eq 0 ]
     	then
         	echo "\t \t Modifier key to 0 wvous-corner_code-modifier setting"
     	else
-        	echo "\t \t Modifier key wvous-corner_code-modifier must be setting 0"
+        	echo "\t \t Modifier key wvous-corner_code-modifier must be setting 0 [ \033[00;31mWarning\033[0m ]"
     	fi
 fi
 
@@ -539,7 +545,7 @@ else
     	then
         	echo "\t \t Automatically hide and show Dock setting"
     	else
-        	echo "\t \t Automatically hide and show Dock not setting"
+        	echo "\t \t Automatically hide and show Dock not setting [ \033[00;31mWarning\033[0m ]"
     	fi
 fi
 
@@ -549,7 +555,7 @@ if [ "$(echo $compuSleep)" ]
 then
 	if [ $compuSleep -eq 0 ]
 	then
-		echo "\t \t Computer sleep disabled"
+		echo "\t \t Computer sleep disabled [ \033[00;31mWarning\033[0m ]"
 	else
 		echo "\t \t Computer sleep enabled"
 	fi 
@@ -565,10 +571,10 @@ then
 	then
 		echo "\t \t Hard disk sleep enabled"
 	else
-		echo "\t \t Hard disk sleep disabled"
+		echo "\t \t Hard disk sleep disabled [ \033[00;31mWarning\033[0m ]"
 	fi
 else
-	echo "\t \t Hard disk sleep is not setting"
+	echo "\t \t Hard disk sleep is not setting [ \033[00;31mWarning\033[0m ]"
 fi
 
 # Checking Wake for Ethernet network administrator access disabled 
@@ -579,7 +585,7 @@ then
 	then
 		echo "\t \t Wake for Ethernet network administrator access disabled"
 	else
-		echo "\t \t Wake for Ethernet network administrator access enabled"
+		echo "\t \t Wake for Ethernet network administrator access enabled [ \033[00;31mWarning\033[0m ]"
 	fi
 else
 	echo "\t \t Wake for Ethernet network administrator access not setting"
@@ -593,7 +599,7 @@ then
 	then
         	echo "\t \t Restart automatically after power failure disabled"
 	else
-        	echo "\t \t Restart automatically after power failure enabled"
+        	echo "\t \t Restart automatically after power failure enabled [ \033[00;31mWarning\033[0m ]"
 	fi
 else
 	echo "\t \t Restart automatically after power failure not setting"
@@ -602,7 +608,7 @@ fi
 # Checking Dashboard Disabled
 if [ -a /System/Library/LaunchDaemons/com.apple.dashboard.advisory.fetch.plist ]
 then
-	echo "\t \t Dashboard Enabled"
+	echo "\t \t Dashboard Enabled [ \033[00;31mWarning\033[0m ]"
 else
 	echo "\t \t Dashboard Disabled"
 fi 
@@ -615,7 +621,7 @@ do
     then
         echo "\t \t NetworkService $i : IPv6 Off"
     else
-        echo "\t \t NetworkService $i : IPv6 On"
+        echo "\t \t NetworkService $i : IPv6 On [ \033[00;31mWarning\033[0m ]"
     fi
 done
 
@@ -627,7 +633,7 @@ then
 	then 
 		echo "\t \t Receiving faxes job loaded but not running"
 	else
-		echo "\t \t Receiving faxes job is running"
+		echo "\t \t Receiving faxes job is running [ \033[00;31mWarning\033[0m ]"
 	fi
 else
 	echo "\t \t Receiving faxes job unloaded"
@@ -637,7 +643,7 @@ fi
 cupsjob=$(launchctl list | grep cups)
 if [ "$(echo $cupsjob)" ]
 then  
-	echo "\t \t Printer Sharing enabled"
+	echo "\t \t Printer Sharing enabled [ \033[00;31mWarning\033[0m ]"
 else 
 	echo "\t \t Printer Sharing disabled" 
 fi
@@ -650,10 +656,10 @@ then
     	then 
         	echo "\t \t Require password to wake this computer from sleep or screen saver enabled"
     	else
-        	echo "\t \t Require password to wake this computer from sleep or screen saver disabled"
+        	echo "\t \t Require password to wake this computer from sleep or screen saver disabled [ \033[00;31mWarning\033[0m ]"
     	fi
 else
-	echo "\t \t Require password to wake this computer from sleep or screen saver not setting"
+	echo "\t \t Require password to wake this computer from sleep or screen saver not setting [ \033[00;31mWarning\033[0m ]"
 fi
 
 # Disable Automatic login 
@@ -666,7 +672,7 @@ else
     then
         echo "\t \t Automatic login disabled"
     else
-        echo "\t \t Automatic login enabled"
+        echo "\t \t Automatic login enabled [ \033[00;31mWarning\033[0m ]"
     fi
 fi
 
@@ -680,7 +686,7 @@ else
     then
         echo "\t \t Automatic logout delay disbled"
     else
-        echo "\t \t Automatic logout delay enabled"
+        echo "\t \t Automatic logout delay enabled [ \033[00;31mWarning\033[0m ]"
     fi
 fi
 
@@ -688,13 +694,13 @@ fi
 enableVirtualMem=$(defaults read /Library/Preferences/com.apple.virtualMemory UseEncryptedSwap 2>&1)
 if [ "$(echo $enableVirtualMem | awk '/does not exist/')" ]
 then
-    echo "\t \t Secure virtual memory not setting"
+    echo "\t \t Secure virtual memory not setting [ \033[00;31mWarning\033[0m ]"
 else
     if [ "$enableVirtualMem" == "yes" ]
     then
         echo "\t \t Secure virtual memory enabled"
     else
-        echo "\t \t Secure virtual memory disabled"
+        echo "\t \t Secure virtual memory disabled [ \033[00;31mWarning\033[0m ]"
     fi
 fi
 
@@ -708,7 +714,7 @@ else
     then
         echo "\t \t IR remote control disabled"
     else
-        echo "\t \t IR remote control enabled"
+        echo "\t \t IR remote control enabled [ \033[00;31mWarning\033[0m ]"
     fi
 fi
 
@@ -717,7 +723,7 @@ if [ "$(diskutil cs list | grep "Has Encrypted Extents:  Yes")" ]
 then
 	echo "\t \t FileVault enabled"
 else
-	echo "\t \t FileVault disabled"
+	echo "\t \t FileVault disabled [ \033[00;31mWarning\033[0m ]"
 fi
 
 # Enable Firewall Logging
@@ -729,9 +735,9 @@ else
 	if [ "$(echo $fwverb)" == 1 ]
 	then	
 		echo "\t \t Firewall (IPFW) logging is enabled"
-        	echo "\t \t Recomendation: set verbose to value 2"	
+        	echo "\t \t Recomendation: set verbose to value 2 [ \033[00;31mWarning\033[0m ]"	
 	else
-		echo "\t \t Firewall (IPFW) logging is disabled"
+		echo "\t \t Firewall (IPFW) logging is disabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -739,13 +745,13 @@ fi
 appfwverb=$(defaults read /Library/Preferences/com.apple.alf loggingenabled 2>&1)
 if [ "$(echo $appfwverb | awk '/does not exist/')" ]
 then
-	echo "\t \t Firewall Logging not setting"
+	echo "\t \t Firewall Logging not setting [ \033[00;31mWarning\033[0m ]"
 else
 	if [ $appfwverb == 1 ]
         then
 		echo "\t \t Application Firewall Logging Enabled"
 	else
-		echo "\t \t Application Firewall Logging Disabled"
+		echo "\t \t Application Firewall Logging Disabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -753,13 +759,13 @@ fi
 secureVirtualMemory=$(defaults read /Library/Preferences/com.apple.virtualMemory UseEncryptedSwap 2>&1)
 if [ "$(echo $secureVirtualMemory | awk '/does not exist/')" ]
 then
-	echo "\t \t Secure virtual memory not setting"
+	echo "\t \t Secure virtual memory not setting [ \033[00;31mWarning\033[0m ]"
 else
 	if [ $secureVirtualMemory == "YES" ]
     	then
 		echo "\t \t Secure virtual memory enabled"
     	else
-		echo "\t \t Secure virtual memory disabled"
+		echo "\t \t Secure virtual memory disabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -768,7 +774,7 @@ if [ $(pmset -g | awk '$1 == "hibernatemode" { print $2 }') -eq 0 ]
 then
 	echo "\t \t Hibernate mode disabled"
 else
-	echo "\t \t Hibernate mode enabled"
+	echo "\t \t Hibernate mode enabled [ \033[00;31mWarning\033[0m ]"
 fi
 
 # Disable internal microphone or line-in 
@@ -776,7 +782,7 @@ if [ "$(osascript -e "get volume settings" | grep volume:0)" ]
 then
 	echo "\t \t Internal microphone or line-in disabled" 
 else
-	echo "\t \t Internal microphone or line-in enabled"
+	echo "\t \t Internal microphone or line-in enabled [ \033[00;31mWarning\033[0m ]"
 fi
 
 # Disable Speech Recognition 
@@ -789,7 +795,7 @@ else
     	then
         	echo "\t \t Speed Recognition disabled"
     	else
-        	echo "\t \t Speed Recognition enabled"
+        	echo "\t \t Speed Recognition enabled [ \033[00;31mWarning\033[0m ]"
    	fi
 fi
 
@@ -803,7 +809,7 @@ else
 	then
 		echo "\t \t Text to Speech settings disabled"
 	else
-		echo "\t \t Text to Speech settings enabled"
+		echo "\t \t Text to Speech settings enabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -816,7 +822,7 @@ else
 	then
 		echo "\t \t Spoken Notification App Activation Flag disabled"
 	else
-		echo "\t \t Spoken Notification App Activation Flag enabled"
+		echo "\t \t Spoken Notification App Activation Flag enabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -829,7 +835,7 @@ else
 	then
 		echo "\t \t Spoken UI Use Speaking HotKey Flag disabled"
 	else
-		echo "\t \t Spoken UI Use Speaking HotKey Flag enabled"
+		echo "\t \t Spoken UI Use Speaking HotKey Flag enabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -842,7 +848,7 @@ else
 	then
 		echo "\t \t Time Announcement Prefs disabled"
 	else
-		echo "\t \t Time Announcement Prefs enabled"
+		echo "\t \t Time Announcement Prefs enabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -850,13 +856,13 @@ fi
 timemach=$(defaults read /Library/Preferences/com.apple.TimeMachine AutoBackup 2>&1)
 if [ "$(echo $timemach | awk '/does not exist/')" ]
 then
-	echo "\t \t Time Machine Prefs not setting"
+	echo "\t \t Time Machine Prefs not setting [ \033[00;31mWarning\033[0m ]"
 else
 	if [ $timemach -eq 1 ]
 	then
 		echo "\t \t Time Machine enabled"
 	else
-		echo "\t \t Time Machine disabled"
+		echo "\t \t Time Machine disabled [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -870,7 +876,7 @@ then
 	then
 		echo "\t \t Service VoiceOver loaded but not running"
 	else
-		echo "\t \t Service VoiceOver is running"
+		echo "\t \t Service VoiceOver is running [ \033[00;31mWarning\033[0m ]"
 	fi
 else
 	echo "\t \t Service VoiceOver is unloaded"
@@ -883,7 +889,7 @@ then
 	then
 		echo "\t \t Service ScreenReaderUIServer loaded but not running"
 	else
-		echo "\t \t Service ScreenReaderUIServer is running"	
+		echo "\t \t Service ScreenReaderUIServer is running [ \033[00;31mWarning\033[0m ]"	
 	fi
 else
 	echo "\t \t Service ScreenReaderUIServer is unloaded"
@@ -896,7 +902,7 @@ then
 	then
 		echo "\t \t Service scrod loaded but not running"
 	else
-		echo "\t \t Service scrod is running"
+		echo "\t \t Service scrod is running [ \033[00;31mWarning\033[0m ]"
 	fi
 else
 	echo "\t \t Service scrod is unloaded"
@@ -911,14 +917,14 @@ if [ "$(dscl localhost -read /Search/Users/root Password)" == "Password: *" ]
 then
 	echo "\t \t Root account disabled"
 else
-	echo "\t \t Root account enabled"
+	echo "\t \t Root account enabled [ \033[00;31mWarning\033[0m ]"
 fi
 
 # Checking Setuid and Setgid flags
 echo "\t[Checking Setuid flags]"
-find / -perm -04000 -ls 2>/dev/null | awk '{ print "\t \t " $11 }'
+find / -perm -04000 -ls 2>/dev/null | awk '{ print "\t \t " $11 " [ \033[00;31mWarning\033[0m ]"}'
 echo "\t[Checking Setgid flags]"
-find / -perm -02000 -ls 2>/dev/null | awk '{ print "\t \t " $11 }'
+find / -perm -02000 -ls 2>/dev/null | awk '{ print "\t \t " $11 " [ \033[00;31mWarning\033[0m ]"}'
 
 # Checking Disk Permissions
 echo "\t[Checking Disk Permissions]" 
@@ -926,7 +932,7 @@ targetBootDrive=$(uname -a | awk '{ print $2}' | cut -d'.' -f1)
 diskUtil=$(diskutil verifyPermissions /Volumes/$targetBootDrive 2>/dev/null)
 if [ "$(echo $diskUtil | awk '/differ/')" ]
 then
-	echo "\t \t Must repair disk permissions"
+	echo "\t \t Must repair disk permissions [ \033[00;31mWarning\033[0m ]"
 else
 	echo "\t \t OK Disk Permisssions"
 fi
@@ -942,7 +948,7 @@ do
     then
         echo "\t \t /Users/$us has correct permissions"
     else
-        echo "\t \t /Users/$us doesnt have correct permissions"
+        echo "\t \t /Users/$us doesnt have correct permissions [ \033[00;31mWarning\033[0m ]"
     fi
 done
 
@@ -955,10 +961,10 @@ then
 	then
 		echo "\t \t Timestamps $tmstamps enabled in /Users/$inuser/.profile"
 	else
-		echo "\t \t Timestamps in bash history not enabled"
+		echo "\t \t Timestamps in bash history not enabled [ \033[00;31mWarning\033[0m ]"
 	fi
 else
-	echo "\t \t Timestamps in bash history not enabled"
+	echo "\t \t Timestamps in bash history not enabled [ \033[00;31mWarning\033[0m ]"
 fi
 
 ## Checking Applications ##
@@ -971,7 +977,7 @@ then
 	then
 		echo "\t \t Service SyncServer loaded but not running"
 	else
-		echo "\t \t Service SyncServer is running"
+		echo "\t \t Service SyncServer is running [ \033[00;31mWarning\033[0m ]"
 	fi
 else
 	echo "\t \t Service SyncServer is unloaded"
@@ -984,7 +990,7 @@ then
 	then 		
 		echo "\t \t Service uihandler loaded but not running"
 	else
-		echo "\t \t Service uihandler is running"
+		echo "\t \t Service uihandler is running [ \033[00;31mWarning\033[0m ]"
 	fi
 else
 	echo "\t \t Service uihandler is unloaded"
@@ -996,7 +1002,7 @@ echo "\n[[Checking System Utilities]]"
 echo "\t[Checking Secure Remove (srm) installed]"
 if [ "$(srm 2>&1 | grep "command not found")" ]
 then
-	echo "\t \t Secure Remove (srm) not installed"	
+	echo "\t \t Secure Remove (srm) not installed [ \033[00;31mWarning\033[0m ]"	
 else
 	echo "\t \t Secure Remove (srm) installed"
 fi
@@ -1005,11 +1011,11 @@ echo "\t[Checking Finder Secure Remove enabled]"
 findersec=$(defaults read com.apple.finder EmptyTrashSecurely 2>&1)
 if [ "$(echo $findersec | awk '/does not exist/')" ]
 then
-        echo "\t \t Finder Secure Remove not installed"
+        echo "\t \t Finder Secure Remove not installed [ \033[00;31mWarning\033[0m ]"
 else
         if [ $findersec -eq 0 ]
         then
-                echo "\t \t Finder Secure Remove disabled"
+                echo "\t \t Finder Secure Remove disabled [ \033[00;31mWarning\033[0m ]"
         else
                 echo "\t \t Finder Secure Remove enabled"
  	fi
@@ -1021,12 +1027,12 @@ if [ "$(echo $tminter)" ]
 then
         if [ "$(echo $tminter | awk ' { print $2 } ')" == "-" ]
         then
-                echo "\t \t Backup Time Machine Intervals daemon loaded but not running"
+                echo "\t \t Backup Time Machine Intervals daemon loaded but not running [ \033[00;31mWarning\033[0m ]"
         else
                 echo "\t \t Backup Time Machine Intervals daemon is running"
         fi
 else
-        echo "\t \t Backup Time Machine Intervals daemon is unloaded"
+        echo "\t \t Backup Time Machine Intervals daemon is unloaded [ \033[00;31mWarning\033[0m ]"
 fi
 
 ## Checking Network Services ##
@@ -1045,10 +1051,10 @@ then
 	then
 		echo "\t \t Application Firewall enabled - Block all incoming connections and Silent Mode"
 	else
-		echo "\t \t Application Firewall enabled - Not blocking all incoming connections"
+		echo "\t \t Application Firewall enabled - Not blocking all incoming connections [ \033[00;31mWarning\033[0m ]"
 	fi
 else
-	echo "\t \t Application Firewall disabled"
+	echo "\t \t Application Firewall disabled [ \033[00;31mWarning\033[0m ]"
 fi
 
 # Checking IP Firewall Enabled
@@ -1119,7 +1125,7 @@ com.apple.webdavfs_load_kext
 org.postfix.master )
 for s in ${services[@]} 
 do
-	(launchctl list | grep "$s" 1>/dev/null) && echo "\t \t Service $s must be unloaded"
+	(launchctl list | grep "$s" 1>/dev/null) && echo "\t \t Service $s must be unloaded [ \033[00;31mWarning\033[0m ]"
 done
 
 if [ -f /etc/launchd.conf ]
@@ -1129,7 +1135,7 @@ echo "\t[Checking the global umask file permission]"
 	then
 		"\t \t Umask file permission on /etc/launchd.conf is 077"
 	else
-		"\t \t Must change global umask file permission on /etc/launchd.conf to 077"
+		"\t \t Must change global umask file permission on /etc/launchd.conf to 077 [ \033[00;31mWarning\033[0m ]"
 	fi
 fi
 
@@ -1140,7 +1146,7 @@ if [ "$(sysctl kern.nx | awk ' { print $2 }' )" -eq 1 ]
 then
  	echo "\t \t Hardware-enforced DEP enabled"
 else
- 	echo "\t \t Hardware-enforced DEP disabled"
+ 	echo "\t \t Hardware-enforced DEP disabled [ \033[00;31mWarning\033[0m ]"
 fi
  
 echo "\t[Checking ASLR (Address Space Layout Randomization)]"
@@ -1158,7 +1164,7 @@ do
                 then
                         echo "\t \t $b has ASLR enabled"
                 else
-                        echo "\t \t $b has ASLR disabled"
+                        echo "\t \t $b has ASLR disabled [ \033[00;31mWarning\033[0m ]"
                 fi
         fi
 done
@@ -1169,13 +1175,13 @@ echo "\t[Checking OCSP Revocation to Best Attempt]"
 ocsp=$(defaults read com.apple.security.revocation OCSPStyle 2>&1)
 if [ "$(echo $ocsp | awk '/does not exist/')" ]
 then
-        echo "\t \t Security Revocation not installed"
+        echo "\t \t Security Revocation not installed [ \033[00;31mWarning\033[0m ]"
 else
         if [ $ocsp == "BestAttempt" ]
         then
                 echo "\t \t OCSP Revocation to Best Attemp enabled"
         else
-                echo "\t \t OCSP Revocation to Best Attemp disabled"
+                echo "\t \t OCSP Revocation to Best Attemp disabled [ \033[00;31mWarning\033[0m ]"
         fi
 fi 
 
@@ -1183,13 +1189,13 @@ echo "\t[Checking CRL Revocation to Best Attempt]"
 crl=$(defaults read com.apple.security.revocation CRLStyle 2>&1)
 if [ "$(echo $crk | awk '/does not exist/')" ]
 then
-        echo "\t \t Security Revocation not installed"
+        echo "\t \t Security Revocation not installed [ \033[00;31mWarning\033[0m ]"
 else
         if [ $crl == "BestAttempt" ]
         then
                 echo "\t \t CRL Revocation to Best Attemp enabled"
         else
-                echo "\t \t CRL Revocation to Best Attemp disabled"
+                echo "\t \t CRL Revocation to Best Attemp disabled [ \033[00;31mWarning\033[0m ]"
         fi
 fi 
 
