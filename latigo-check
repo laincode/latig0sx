@@ -424,7 +424,7 @@ else
 fi	
 
 # Disable picture CD automatic action
-cdPrefPicure=$(defaults read /Users/$inuser/Library/Preferences/com.apple.digihub com.apple.digihub.cd.picture.appeared action 2>&1)
+cdPrefPicture=$(defaults read /Users/$inuser/Library/Preferences/com.apple.digihub com.apple.digihub.cd.picture.appeared action 2>&1)
 if [ "$(echo $cdPrefPicture | awk '/does not exist/')" ]
 then
 	echo "\t \t Picture CD automatic action not defined"
@@ -442,6 +442,7 @@ dvdPrefBlank=$(defaults read /Users/$inuser/Library/Preferences/com.apple.digihu
 if [ "$(echo $dvdPrefBlank | awk '/does not exist/')" ]
 then
         echo "\t \t Blank CD automatic action not defined"
+else
 	if [ "$(echo $dvdPrefBlank | grep "action = 1")" ]
 	then
         	echo "\t \t Blank DVD automatic action disabled"
@@ -684,7 +685,7 @@ then
 else
     if [ $disableAutoLogin -eq 0 ]
     then
-        echo "\t \t Automatic logout delay disbled"
+        echo "\t \t Automatic logout delay disabled"
     else
         echo "\t \t Automatic logout delay enabled [ \033[00;31mWarning\033[0m ]"
     fi
@@ -710,7 +711,7 @@ if [ "$(echo $disableIR | awk '/does not exist/')" ]
 then
     echo "\t \t IR remote control not setting"
 else
-    if [ "$disableIR" == "no" ]
+    if [ "$disableIR" -eq 0 ]
     then
         echo "\t \t IR remote control disabled"
     else
@@ -719,7 +720,7 @@ else
 fi
 
 # Enable FileVault
-if [ "$(diskutil cs list | grep "Has Encrypted Extents:  Yes")" ]
+if [ "$(diskutil cs list | grep "Has Encrypted Extents" | grep  Yes)" ]
 then
 	echo "\t \t FileVault enabled"
 else
