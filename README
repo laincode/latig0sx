@@ -1,5 +1,6 @@
 #
-#  Latig0sx - Auditing & Hardening OS X
+#  Latig0sx v2.0 - OS X Auditing & Hardening
+#       by lain 2014
 #
 
 Usage:
@@ -8,7 +9,7 @@ Usage:
 
 	$ sudo ./latigo-check -u <user>
 
-2) System Hardening
+2) Hardening your System
 
 	$ sudo ./latigo-hardening -u <user>
 

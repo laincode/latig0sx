@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (c) 2012/2015 lain <lain@braincakes.org>
+# Copyright (c) 2014/2016 lain <lain@braincakes.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 echo -------------------------------------------
-echo " Latigo - OS X Auditing                  "
-echo "     by lain                             "
+echo " Latig0sx v2.0- OS X Auditing            "
+echo "     by lain 2014                        "
 echo -------------------------------------------
 
 if [ $# -lt 2 ] || [ $# -gt 2 ]
@@ -197,6 +197,26 @@ do
         fi
 done
 
+# Checking the sudo timeout period
+echo "\t [Checking sudo timeout period]"
+stimep=$(cat /etc/sudoers | grep timestamp | awk '{ print $2 $3 $4 $5}')
+if [ $stimep ]
+then
+        echo "\t \t Sudo timeout period is set to $timep"
+else
+	echo "\t \t No sudo timeout period setting [ \033[00;31mWarning\033[0m ]"
+fi 
+
+# Checking core dumps
+echo "\t [Checking core dumps]"
+cdump=$(launchctl limit core | awk '{ print $3}')
+if [ $cdump -eq 0 ]
+then
+        echo "\t \t Core dumps disabled"
+else
+        echo "\t \t Core dumps enabled: $cdump [ \033[00;31mWarning\033[0m ]"
+fi
+
 ## Checking Global System Settings ##
 echo "\n[[Checking Global System Settings]]"
 
@@ -273,7 +293,16 @@ echo "\n[[Checking System Preferences]]"
 	
 # Checking MobileMe Preferences
 echo "\t [Checking MobileMe Preferences]"
+mobileme=$(defaults read ~/Library/Preferences/.GlobalPreferences iToolsMember 2>&1)
+if [ "$(echo $mobileme | awk '/does not exist/')" ]
+then
+	echo "\t \t MobileMe Preferences disabled"
+else
+	echo "\t \t MobileMe Preferences enabled [ \033[00;31mWarning\033[0m ]"
+fi
+
 # Checking Disable Sync options
+echo "\t [Checking Sync optins disabled]"
 syncopts=$(defaults read /Library/Preferences/com.apple.DotMacSync ShouldSyncWithServer 2>&1)
 if [ "$(echo $syncopts | awk '/does not exist/')" ]
 then
@@ -347,6 +376,20 @@ else
 		echo "\t \t Show Restart, Sleep and ShutDown Buttons disabled"
 	fi
 fi
+
+# Checking Allow guests to connect to shared folders
+guestshare=$(defaults read /Library/Preferences/com.apple.AppleFileServer guestAccess 2>&1)
+if [ "$(echo $guestshare | awk '/does not exist/')" ]
+then
+        echo "\t \t Allow guests to connect to shared folders not installed"
+else
+        if [ $guestshare -eq 0 ]
+        then
+                echo "\t \t Allow guests to connect to shared folders disabled"
+        else
+                echo "\t \t Allow guests to connect to shared folders enabled [ \033[00;31mWarning\033[0m ]"
+        fi
+fi
  
 # Checking fast user switching disabled
 fastUserSwitching=$(defaults read /Library/Preferences/.GlobalPreferences MultipleSessionEnabled 2>&1)
@@ -390,6 +433,20 @@ else
 	else
 		echo "\t \t Bluetooth is enabled [ \033[00;31mWarning\033[0m ]"
 	fi
+fi
+
+# Checking Bluetooth internet connection sharing
+blueshare=$(defaults read /Library/Preferences/com.apple.Bluetooth PANServices 2>&1)
+if [ "$(echo $blueshare | awk '/does not exist/')" ]
+then
+        echo "\t \t Bluetooth internet connection sharing not installed"
+else
+	if [ $blueshare -eq 0 ]
+        then
+                echo "\t \t Bluetooth internet connection sharing is disabled"
+        else
+                echo "\t \t Bluetooth internet connection sharing is enabled [ \033[00;31mWarning\033[0m ]"
+        fi
 fi
 
 # Checking CDs & DVDs Preferences 
@@ -505,7 +562,12 @@ if [ "$(echo $idleTimeScreenSaver | awk '/does not exist/')" ]
 then
 	echo "\t \t Idle time for screen saver not setting [ \033[00;31mWarning\033[0m ]"
 else
-	echo "\t \t Idle time for screen saver setting"
+	if [ $idleTime -lt 900 ]
+	then
+		echo "\t \t Idle time for screen saver is setting to $idleTime"
+	else
+		echo "\t \t Idle time for screen saver is not set to a value lower than 900  [ \033[00;31mWarning\033[0m ]"
+        fi
 fi
 
 # Set host corner to activate screen saver
@@ -1068,6 +1130,8 @@ services=(
 # If a VPN is not used, disable the IKE VPN key management service
 com.apple.racoon
 # Disable Bonjour!!!
+com.apple.mDNSResponder
+com.apple.mDNSResponderHelper
 # Disable DVD or CD Sharing
 com.apple.ODSAgent
 # Disable FTP
@@ -1080,6 +1144,7 @@ com.apple.smb.sharepoints
 com.apple.smbfs_load_kext
 org.samba.winbindd
 # Disable AFP
+com.apple.AppleFileServer
 com.apple.afpfs_afpLoad
 com.apple.afpfs_checkafp
 # Disable NFS
@@ -1101,7 +1166,7 @@ com.apple.eppc
 com.apple.xgridagentd
 com.apple.xgridcontrollerd
 # Disable Internet Sharing
-com.apple.InternetSharin
+com.apple.InternetSharing
 # Turn off AirPort Services using the following commands
 com.apple.airportPrefsUpdater
 com.apple.AirPort.wps
@@ -1123,7 +1188,8 @@ com.apple.blued
 com.apple.IIDCAssistant
 com.apple.UserNotificationCenter
 com.apple.webdavfs_load_kext
-org.postfix.master )
+org.postfix.master
+eppc )
 for s in ${services[@]} 
 do
 	(launchctl list | grep "$s" 1>/dev/null) && echo "\t \t Service $s must be unloaded [ \033[00;31mWarning\033[0m ]"
