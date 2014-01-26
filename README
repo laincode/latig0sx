@@ -5,12 +5,14 @@
 
 Usage:
 
-1) Check your System Configuration
+1) Checking your System Configuration
 
-	$ sudo ./latigo-check -u <user>
+	$ sudo ./latig0sx -c -u <user>
 
 2) Hardening your System
 
-	$ sudo ./latigo-hardening -u <user>
+	$ sudo ./latig0sx -h -u <user>
 
+
+More info: http://lain77z.github.io/latig0sx
 
