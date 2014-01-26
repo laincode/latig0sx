@@ -68,9 +68,9 @@ printf "\tCreate daemon for downloading and installing the latest Software Updat
 read softupdate
 if [ -z $softupdate ] || [ $softupdate == "y" ]
 then
-	if [ -f conf/com.softwareupdate.plist ]
+	if [ -f ../conf/com.softwareupdate.plist ]
 	then
-		cp conf/com.softwareupdate.plist /System/Library/LaunchDaemons/
+		cp ../conf/com.softwareupdate.plist /System/Library/LaunchDaemons/
 		chown root:wheel /System/Library/LaunchDaemons/com.softwareupdate.plist
 		launchctl load -w /System/Library/LaunchDaemons/com.softwareupdate.plist > /dev/null 2>&1
 		echo "\t \t\033[00;32mDone\033[0m - com.softwareupdate.plist daemon loaded" 
