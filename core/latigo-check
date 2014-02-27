@@ -193,11 +193,16 @@ fi
 # Checking core dumps
 echo "\t [Checking core dumps]"
 cdump=$(launchctl limit core | awk '{ print $3}')
-if [ $cdump -eq 0 ]
+if [ "$cdump" == "unlimited" ] || [ $cdump -eq 0 ]
 then
-        echo "\t \t Core dumps disabled"
+	echo "\t \t Core dumps enabled: $cdump [ \033[00;31mWarning\033[0m ]"
 else
-        echo "\t \t Core dumps enabled: $cdump [ \033[00;31mWarning\033[0m ]"
+	if [ $cdump -eq 0 ]
+	then
+		echo "\t \t Core dumps disabled"
+	else
+        	echo "\t \t Core dumps enabled: $cdump [ \033[00;31mWarning\033[0m ]"
+	fi
 fi
 
 ## Checking Global System Settings ##
