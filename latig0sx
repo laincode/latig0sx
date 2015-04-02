@@ -25,10 +25,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-echo --------------------------------------------
-echo " Latig0sx v2.0 - OS X Auditing & Hardening "
-echo "     by lain 2014                          "
-echo --------------------------------------------
+echo -------------------------------------------------------
+echo " Latig0sx v2.0 - OS X Security: Checking & Hardening "
+echo "     by lain 2014                                    "
+echo -------------------------------------------------------
 
 
 if [ $# -lt 3 ] || [ $# -gt 3 ]
