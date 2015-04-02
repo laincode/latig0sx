@@ -1,5 +1,5 @@
 #
-#  Latig0sx v2.0 - OS X Auditing & Hardening
+#  Latig0sx v2.0 - OS X Security: Checking & Hardening
 #       by lain 2014
 #
 
@@ -9,7 +9,7 @@ Usage:
 
 	$ sudo ./latig0sx -c -u <user>
 
-2) Hardening your System
+2) Hardening your System Configuration
 
 	$ sudo ./latig0sx -h -u <user>
 
