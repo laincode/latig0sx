@@ -1,15 +1,15 @@
 #
-#  Latig0sx v2.0 - OS X Security: Checking & Hardening
+#  Latig0sx v2.0 - OSX Security Compliance & Hardening
 #       by lain 2014
 #
 
 Usage:
 
-1) Checking your System Configuration
+1) OSX Security Compliance
 
 	$ sudo ./latig0sx -c -u <user>
 
-2) Hardening your System Configuration
+2) OSX Hardening
 
 	$ sudo ./latig0sx -h -u <user>
 
